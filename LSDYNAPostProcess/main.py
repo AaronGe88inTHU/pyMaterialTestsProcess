@@ -1,8 +1,8 @@
 import sys
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 import numpy as np
 from collections import defaultdict
-
+import pandas as pd
 from eloutReader import eloutReader, effectStrain
 from kReader import setLoader
 
@@ -22,7 +22,8 @@ def gauge(elementSet, elout):
     return gaugeHistory
 
 def main(argv):
-    ele = setLoader('cone_s_withset_2.k')
+    kName = argv[1]
+    ele = setLoader(kName)
     elout = eloutReader('elout')
     #lst = elout[1424]
     #print(len(lst[0]))
@@ -30,11 +31,21 @@ def main(argv):
     #plt.plot(history)
     #plt.show()
     history = gauge(ele, elout)
+
+    columns = []
+
+    gaugeData = []
     for k, v in history.items():
         #print(k, v)
         aver = np.average(np.array(v), axis=0)
         #print(aver.shape)
-        plt.plot(aver)
-    plt.show()
+        #plt.plot(aver)
+        columns.append(str(k)[1:])
+        gaugeData.append(aver)
+    #plt.show()
+    gaugeData = np.array(gaugeData).reshape(-1, len(columns))
+    df = pd.DataFrame(gaugeData, columns = columns)
+    df.to_excel('gauge.xlsx','1')
+
 if __name__ == "__main__":
     main(sys.argv)

@@ -45,7 +45,7 @@ def readTestInfo(fileMachine, fileDic, direction ='u_c',fileCamera ='Cam1ImageIn
 
     #timeResult = np.hstack([cameraTime, result]).reshape(-1, 2)
     #print(cameraTime.shape, result.shape)
-    funcEx = interpolate.interp1d(cameraTime[:,0], result[:,0])
+    funcEx = interpolate.interp1d(cameraTime[:,0], result[:,0], bounds_error=False)
     
     #machineTime = machineTime.reshape(-1,1)
     #machineTime = machineTime[:,0]
