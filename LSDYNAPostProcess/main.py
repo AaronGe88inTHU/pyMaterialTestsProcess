@@ -3,22 +3,24 @@ import sys
 import numpy as np
 from collections import defaultdict
 import pandas as pd
+import copy
 from eloutReader import eloutReader, effectStrain
 from kReader import setLoader
 
 
 
 def gauge(elementSet, elout):
+    elout2 = copy.deepcopy(elout)
     gaugeHistory = defaultdict(list)
     for idSet, elSet in elementSet.items():
         found = []
-        for idEle, strainHistory in elout.items():
+        for idEle, strainHistory in elout2.items():
             if idEle in elSet[0]:
                 #eleHistory = [effectStrain(ll) for ll in strainHistory]
                 eleHistory = [ll[0] for ll in strainHistory]
                 gaugeHistory[idSet].append(eleHistory)
                 found.append(idEle)
-        [elout.pop(ll) for ll in found]
+        [elout2.pop(ll) for ll in found]
     return gaugeHistory
 
 def main(argv):
@@ -43,7 +45,7 @@ def main(argv):
         columns.append(str(k)[1:])
         gaugeData.append(aver)
     #plt.show()
-    gaugeData = np.array(gaugeData).reshape(-1, len(columns))
+    gaugeData = np.array(gaugeData).T
     df = pd.DataFrame(gaugeData, columns = columns)
     df.to_excel('gauge.xlsx','1')
 
