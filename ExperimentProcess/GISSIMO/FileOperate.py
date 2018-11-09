@@ -15,16 +15,22 @@ def readXlsx(fileName):
     xlsx = pd.ExcelFile(fileName)
     etaThetaEpsilon = []
     for sheet in xlsx.sheet_names:
+        #print(sheet)
         df = pd.read_excel(xlsx, sheet)
         eta = df.loc[:, 'TRI'].values.reshape(-1, 1)
         thetaBar = df.loc[:, 'LP'].values.reshape(-1, 1)
         eplison = df.loc[:, 'EPS'].values.reshape(-1, 1)
+        ind = np.where(eplison>0)
+        #print(sheet)
+        #print(ind)
         ete = np.hstack([eta, thetaBar, eplison])
-        etaThetaEpsilon.append(ete)
+        
+        etaThetaEpsilon.append(ete[ind[0],:])
     
-    logging.debug(etaThetaEpsilon)
-    return np.array(etaThetaEpsilon)
-
+    #logging.debug(etaThetaEpsilon)
+    etaThetaEpsilon = np.array(etaThetaEpsilon)
+    return etaThetaEpsilon
+    
 def preProcess(cwd):
     fileNames = os.listdir(cwd)
     clearedData = pd.ExcelWriter('clearedData.xlsx')

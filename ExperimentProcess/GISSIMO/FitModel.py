@@ -1,9 +1,8 @@
 import numpy as np
 from GISSIMO import simplifiedMMC, accumulatedDamage
 from scipy import optimize
-import Paramters
 
-def testResults(tests, param):
+def testResultsAcc(param, tests):
     """
     tests result to damgaIndicator
     """
@@ -13,20 +12,42 @@ def testResults(tests, param):
         theta = test[:, 1]
         epsilon = test[:, 2]
         damageIndicator = accumulatedDamage(simplifiedMMC, eta, theta, epsilon, param)
+        #print(damageIndicator)
         indicators[ii] = damageIndicator
     return indicators
 
-def func(param, x):
-    return testResults(x, param)
-    
+def testResulsUsingFractureStrain(param, tests):
+    epsMMC = np.array([simplifiedMMC(test[-1,0], test[-1, 1], param) for test in tests]).reshape(-1,1)
+    #epsTest = tests[:, -1, 2].reshape(-1,1)
+    return epsMMC 
 
-def err(param, x, y):
-    c1, c2 = param
+def errAcc(param, x, y):
+    A, n, c1, c2 = param
     #print(Paramters.A, Paramters.n)
-    return func((Paramters.A, Paramters.n, c1, c2), x) - y
+    return testResultsAcc((A,n, c1, c2), x) - y
 
-def fitModel(tests):
+def errFractureStrain(param, x, y):
+    epsMMC = testResulsUsingFractureStrain(param, x)
+    epsTest = np.array([test[-1, 2] for test in x]).reshape(-1,1)
+    #print((epsMMC-epsTest).T)
+    return (epsMMC - epsTest).T[0]
+
+def fitModelUsingFractureStrain(tests):
     targets = np.ones([tests.shape[0]])
-    res = optimize.leastsq(err, (0.1, 500), (tests, targets))
+    #result = testResults(tests,(996.68, 0.026, 0.1, 500))
+    res = optimize.least_squares(errFractureStrain, (500, 0.1, .1, 600), args=(tests, targets))
+    
     #print(err(res[0], tests, targets))
-    return res[0]
+    #indicators = testResults(tests, (96.68, 0.02772, res[0][0], res[0][1]))
+    #Aprint(func((996.68, 0.02772,res[0][0], res[0][1]), tests))
+    return res
+
+def fitDamageAcc(tests, res0):
+    targets = np.ones([tests.shape[0]])
+    #result = testResults(tests,(996.68, 0.026, 0.1, 500))
+    res = optimize.least_squares(errAcc, res0, args=(tests, targets))
+    
+    #print(err(res[0], tests, targets))
+    #indicators = testResults(tests, (96.68, 0.02772, res[0][0], res[0][1]))
+    #Aprint(func((996.68, 0.02772,res[0][0], res[0][1]), tests))
+    return res
