@@ -30,13 +30,16 @@ def errFractureStrain(param, x, y):
     epsMMC = testResulsUsingFractureStrain(param, x)
     epsTest = np.array([test[-1, 2] for test in x]).reshape(-1,1)
     #print((epsMMC-epsTest).T)
-    return (epsMMC - epsTest).T[0]
+    #print(epsMMC-epsTest.T[0])
+    return (epsMMC - epsTest).T[0] 
+    #return np.sum((epsMMC - epsTest).T[0] ** 2)
 
 def fitModelUsingFractureStrain(tests):
     targets = np.ones([tests.shape[0]])
     #result = testResults(tests,(996.68, 0.026, 0.1, 500))
-    res = optimize.least_squares(errFractureStrain, (500, 0.1, .1, 600), args=(tests, targets))
-    
+    #res = optimize.differential_evolution(errFractureStrain,bounds=([0,5000],[0,100],[0, 100],[0, 10000]), args=(tests, targets))
+    #res0 = (2000, 0.1, .1, 6000)
+    res = optimize.least_squares(errFractureStrain, x0=(2000, 0.1, .1, 6000), bounds=([0,0,0,0],[10000, 100,1000,10000]), args=(tests, targets))
     #print(err(res[0], tests, targets))
     #indicators = testResults(tests, (96.68, 0.02772, res[0][0], res[0][1]))
     #Aprint(func((996.68, 0.02772,res[0][0], res[0][1]), tests))
@@ -45,7 +48,7 @@ def fitModelUsingFractureStrain(tests):
 def fitDamageAcc(tests, res0):
     targets = np.ones([tests.shape[0]])
     #result = testResults(tests,(996.68, 0.026, 0.1, 500))
-    res = optimize.least_squares(errAcc, res0, args=(tests, targets))
+    res = optimize.least_squares(errAcc, res0, bounds=([0,0,0,0],[10000, 100,1000,10000]), args=(tests, targets))
     
     #print(err(res[0], tests, targets))
     #indicators = testResults(tests, (96.68, 0.02772, res[0][0], res[0][1]))

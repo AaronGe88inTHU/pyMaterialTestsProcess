@@ -14,6 +14,7 @@ def readXlsx(fileName):
     """
     xlsx = pd.ExcelFile(fileName)
     etaThetaEpsilon = []
+    labels = []
     for sheet in xlsx.sheet_names:
         #print(sheet)
         df = pd.read_excel(xlsx, sheet)
@@ -26,10 +27,11 @@ def readXlsx(fileName):
         ete = np.hstack([eta, thetaBar, eplison])
         
         etaThetaEpsilon.append(ete[ind[0],:])
+        labels.append(sheet)
     
     #logging.debug(etaThetaEpsilon)
     etaThetaEpsilon = np.array(etaThetaEpsilon)
-    return etaThetaEpsilon
+    return etaThetaEpsilon, labels
     
 def preProcess(cwd):
     fileNames = os.listdir(cwd)
@@ -64,3 +66,33 @@ def preProcess(cwd):
             dff = pd.DataFrame(data, columns=['TIME', 'EPS', 'LP', 'TRI'])
             dff.to_excel(clearedData, sheet_name=os.path.splitext(f)[0])
     clearedData.save()
+'''
+tests = readXlsx('clearedData.xlsx')
+
+import matplotlib.pyplot as plt
+from matplotlib import ticker, cm
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+
+fig = plt.figure()
+
+ax = fig.gca(projection='3d')
+plots = []
+labels = []
+ii = 0
+for test in tests:
+    xx, yy, zz = test[:, 0], test[:, 1], test[:, 2]
+    pl = ax.plot(xx, yy, zz, label=str(ii))#, cmap=cm.coolwarm,linewidth=0, antialiased=False)
+    plots.append(pl)
+    labels.append(str(ii))
+    ii = ii + 1
+    
+ax.legend()#
+ax.xaxis.set_major_locator(LinearLocator(5))
+ax.yaxis.set_major_locator(LinearLocator(5))
+ax.set_xlabel('Triaxiality')
+ax.set_ylabel('Lode Parameter')
+ax.set_zlabel('Failure plastic strain')
+
+plt.show()
+'''

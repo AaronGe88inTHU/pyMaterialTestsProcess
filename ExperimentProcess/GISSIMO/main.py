@@ -1,7 +1,6 @@
 import sys
 import logging
 from FileOperate import readXlsx
-import Paramters
 from FitModel import *
 from GISSIMO import MMCSurface
 import matplotlib.pyplot as plt
@@ -39,7 +38,7 @@ def planeStressMMC(model, param):
 #line = planeStressMMC(simplifiedMMC, resAcc)
 
 
-def showFigure(faiureSurface, tests, line):
+def showFigure(faiureSurface, tests, line, labels):
     XX, YY, ZZ = faiureSurface
     fig = plt.figure()
     #plt.xlabel('Triaxiality')
@@ -50,13 +49,16 @@ def showFigure(faiureSurface, tests, line):
     #cbar = fig.colorbar(cs)
     ax.plot_surface(XX, YY, ZZ, cmap=cm.coolwarm,
                        linewidth=0, antialiased=False, alpha=0.5)
-    #for test in tests:
-    #    x, y, z = test[:, 0], test[:, 1], test[:, 2]
-    #    ax.plot(x, y, z)#, cmap=cm.coolwarm,linewidth=0, antialiased=False)
+    
+    for test, lab in zip(tests, labels):
+        x, y, z = test[:, 0], test[:, 1], test[:, 2]
+        ax.plot(x, y, z, label= lab)#, cmap=cm.coolwarm,linewidth=0, antialiased=False)
+      
     #cset = ax.contour(XX, YY, ZZ, zdir='y',map=cm.coolwarm)
     #print(line)
     #print(line[0].shape)
     #ax.plot(line[0][:,0], line[1][:, 0], line[2][:, 0])
+    ax.legend()
     ax.xaxis.set_major_locator(LinearLocator(5))
     ax.yaxis.set_major_locator(LinearLocator(5))
     ax.set_xlabel('Triaxiality')
@@ -74,23 +76,27 @@ def writeTable(failueSurface):
     #print (etaX, thetaY)
     eta = etaX[0, :]
     theta = thetaY[:, 0]
-    print(eta.shape, theta.shape)
+    print(eta.shape, strain.shape)
     with open ('mmc.tab','w+') as f:
         
         f.write('*DEFINE_TABLE\n')
+        f.write('#$Lode Parameter vs. load curves'+'\n')
         f.write('$'+'{:>9}'.format('TBID')+'\n')
-        f.write(' '+'{:>9d}'.format(eta.shape[0]+1)+'\n')
+        f.write(' '+'{:>9d}'.format(theta.shape[0]+1)+'\n')
         f.write('$'+'{:>9}'.format(' ')+
             '{:>10}'.format('VALUE')+
             '{:>10}'.format('LCID')+'\n')
+        
         for ii, ll in enumerate(theta):
             #print(ii)
             f.write('{:>10}'.format(' ')+
                 '{:>10.3f}'.format(ll)+
                 '{:10d}'.format(ii+1)+'\n')
         f.write('$'+'\n')
-        for ii, _ in enumerate(eta):
+        
+        for ii, _ in enumerate(theta):
             f.write('*DEFINE_CURVE'+'\n')
+            f.write('#$Triaxiality vs. Failure Plastic Strain'+'\n')
             f.write('$'+'{:>9}'.format('LCID')+
                 '{:>10}'.format('SIDR') + 
                 '{:>10}'.format('SCLA') + 
@@ -113,25 +119,25 @@ def writeTable(failueSurface):
                 '{:>10}'.format('A1')+
                 '{:>10}'.format(' ')+
                 '{:>10}'.format('O1')+'\n')
-            for jj, tt in enumerate(theta):
+            for jj, tt in enumerate(eta):
                 f.write('{:>10}'.format(' ')+
                     '{:>10.3f}'.format(tt) + 
                     '{:>10}'.format(' ') +
-                    '{:>10.2e}'.format(strain[jj,ii])+'\n')
+                    '{:>10.2e}'.format(strain[ii,jj])+'\n')
         
 def main():#argv):
-    tests = readXlsx('clearedData.xlsx')
-
+    tests, labels = readXlsx('clearedData.xlsx')
+    tests = tests#[(0,1,2,3,4,5,6,7,8,10,11,12),]
     resUsingFractureStrain = fitModelUsingFractureStrain(tests)
     #resUsingFractureStrain
-    resAcc = fitDamageAcc(tests, resUsingFractureStrain.x)
+    #resAcc = fitDamageAcc(tests, resUsingFractureStrain.x)
     #resAcc
-    a, b , c, d = resAcc.x[:]
+    a, b , c, d = resUsingFractureStrain.x[:]
     failureSurface = MMCSurface(a, b, c,d)
     line = planeStressMMC(simplifiedMMC, (a, b, c, d))
     #print(line.shape)
-    showFigure(failureSurface, tests, line)
-    writeTable(failureSurface)
+    showFigure(failureSurface, tests, line, labels)
+    #writeTable(failureSurface)
 
     
 
