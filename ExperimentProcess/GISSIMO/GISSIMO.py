@@ -59,5 +59,9 @@ def MMCSurface(*param):
     etaX, thetaY = np.meshgrid(eta, theta, sparse=False)
     #z = np.sin(xx**2 + yy**2) / (xx**2 + yy**2)
     #h = plt.contourf(x,y,z)
+    '''
+        lsdyna has different defination of lode parameter than mmc,
+        transfer mmc model to lsdyna format
+    '''
     epsilon = simplifiedMMC(etaX, thetaY, param)
-    return etaX, thetaY, epsilon
+    return etaX, -thetaY, epsilon

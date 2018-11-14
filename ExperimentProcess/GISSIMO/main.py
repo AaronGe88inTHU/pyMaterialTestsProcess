@@ -49,9 +49,14 @@ def showFigure(faiureSurface, tests, line, labels):
     #cbar = fig.colorbar(cs)
     ax.plot_surface(XX, YY, ZZ, cmap=cm.coolwarm,
                        linewidth=0, antialiased=False, alpha=0.5)
+
+    '''
+        lsdyna has different defination of lode parameter than mmc,
+        transfer mmc model to lsdyna format
+     '''
     
     for test, lab in zip(tests, labels):
-        x, y, z = test[:, 0], test[:, 1], test[:, 2]
+        x, y, z = test[:, 0], -test[:, 1], test[:, 2]
         ax.plot(x, y, z, label= lab)#, cmap=cm.coolwarm,linewidth=0, antialiased=False)
       
     #cset = ax.contour(XX, YY, ZZ, zdir='y',map=cm.coolwarm)
@@ -130,9 +135,9 @@ def main():#argv):
     tests = tests#[(0,1,2,3,4,5,6,7,8,10,11,12),]
     resUsingFractureStrain = fitModelUsingFractureStrain(tests)
     #resUsingFractureStrain
-    #resAcc = fitDamageAcc(tests, resUsingFractureStrain.x)
+    resAcc = fitDamageAcc(tests, resUsingFractureStrain.x)
     #resAcc
-    a, b , c, d = resUsingFractureStrain.x[:]
+    a, b , c, d = resAcc.x[:]
     failureSurface = MMCSurface(a, b, c,d)
     line = planeStressMMC(simplifiedMMC, (a, b, c, d))
     #print(line.shape)

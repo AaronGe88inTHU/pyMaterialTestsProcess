@@ -19,7 +19,7 @@ def readXlsx(fileName):
         #print(sheet)
         df = pd.read_excel(xlsx, sheet)
         eta = df.loc[:, 'TRI'].values.reshape(-1, 1)
-        thetaBar = df.loc[:, 'LP'].values.reshape(-1, 1)
+        thetaBar = -df.loc[:, 'LP'].values.reshape(-1, 1)
         eplison = df.loc[:, 'EPS'].values.reshape(-1, 1)
         ind = np.where(eplison>0)
         #print(sheet)
