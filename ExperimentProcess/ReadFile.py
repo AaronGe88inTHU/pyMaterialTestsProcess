@@ -52,6 +52,10 @@ def readTestInfo(fileMachine, fileDic, direction ='u_c',fileCamera ='Cam1ImageIn
     #resultEx = np.array([funcEx(t) for t in machineTime])
     resultEx = funcEx(machineTime.reshape(-1, 1))
     #print(machineTime.shape, resultEx.shape, force.shape)
+    #nan = np.isnan(resultEx)
+    #resultEx = resultEx[~nan]
+    #machineTime = machineTime[~nan]
+    #force = force[~nan]
     return np.hstack([machineTime.reshape(-1,1), resultEx, force.reshape(-1,1)]).reshape(-1, 3)
 
 
