@@ -132,17 +132,18 @@ def writeTable(failueSurface):
         
 def main():#argv):
     tests, labels = readXlsx('clearedData.xlsx')
-    tests = tests#[(0,1,2,3,4,5,6,7,8,10,11,12),]
+    #tests = tests#[(0,1,2,3,4,5,6,7,8,10,11,12),]
     resUsingFractureStrain = fitModelUsingFractureStrain(tests)
     #resUsingFractureStrain
     resAcc = fitDamageAcc(tests, resUsingFractureStrain.x)
     #resAcc
     a, b , c, d = resAcc.x[:]
+    print(a, b, c, d)
     failureSurface = MMCSurface(a, b, c,d)
     line = planeStressMMC(simplifiedMMC, (a, b, c, d))
     #print(line.shape)
     showFigure(failureSurface, tests, line, labels)
-    #writeTable(failureSurface)
+    writeTable(failureSurface)
 
     
 
