@@ -26,17 +26,17 @@ def strokeForce(fileName, direction):
 def strainStress(fileName, width, thick):
     e1 = readTestInfo(fileName, 'strain.csv', 'e1')
     e2 = readTestInfo(fileName, 'strain.csv', 'e2')
-    em = readTestInfo(fileName, 'strain.csv', 'e_vonmises')
+    
     
     def trueStrain(force, e1, width, thick):
         return force / (width * thick) * (1 + e1)
 
     sig = trueStrain(e1[:, 2], e1[:, 1], width, thick)
-    result = np.hstack([e1[:,1].reshape(-1,1), e2[:,1].reshape(-1,1), em[:, 1].reshape(-1,1), sig.reshape(-1,1)])
-    plt.plot(result[:,0], result[:,3])
+    result = np.hstack([e1[:,1].reshape(-1,1), e2[:,1].reshape(-1,1), sig.reshape(-1,1)])
+    plt.plot(result[:,0], result[:,2])
     plt.show()
 
-    df = pd.DataFrame(result, columns=['e1','e2','em', 'sig'])
+    df = pd.DataFrame(result, columns=['e1','e2', 'sig'])
     df.to_excel('harden.xlsx','1')
     
 # In[6]:
@@ -48,7 +48,7 @@ def main(argv):
         print(argv)
         fileName, width, thick, direction = argv[1:5]
         strainStress(fileName, float(width), float(thick))
-        strokeForce(fileName, direction)
+        #strokeForce(fileName, direction)
         
 if __name__=="__main__":
     main(sys.argv)
