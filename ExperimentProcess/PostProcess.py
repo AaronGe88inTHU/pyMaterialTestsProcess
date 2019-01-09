@@ -29,7 +29,7 @@ def strainStress(fileName, width, thick):
     
     
     def trueStrain(force, e1, width, thick):
-        return force / (width * thick) * (1 + e1)
+        return force / (width * thick) * np.exp(e1) 
 
     sig = trueStrain(e1[:, 2], e1[:, 1], width, thick)
     result = np.hstack([e1[:,1].reshape(-1,1), e2[:,1].reshape(-1,1), sig.reshape(-1,1)])
