@@ -42,7 +42,7 @@ def readTestInfo(fileMachine, fileDic, direction ='u_c',fileCamera ='Cam1ImageIn
     count = result.shape[0]
     
     cameraTime = cameraTime[0:count]
-
+    #print (cameraTime)
     #timeResult = np.hstack([cameraTime, result]).reshape(-1, 2)
     #print(cameraTime.shape, result.shape)
     funcEx = interpolate.interp1d(cameraTime[:,0], result[:,0], bounds_error=False)
@@ -59,8 +59,11 @@ def readTestInfo(fileMachine, fileDic, direction ='u_c',fileCamera ='Cam1ImageIn
     return np.hstack([machineTime.reshape(-1,1), resultEx, force.reshape(-1,1)]).reshape(-1, 3)
 
 
-# In[45]:
-
+def readElastic(fileName):
+    xlsx = pd.ExcelFile(fileName)
+    
+    eng = pd.read_excel(xlsx, 'Sheet1')
+    return eng.values
 
 
 
