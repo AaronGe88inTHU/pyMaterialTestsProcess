@@ -72,16 +72,22 @@ def hardenParamter(EMod = 207000, poi = 0.28, uncompression = True):
     
     e1T = np.log(1 + e1)
     e2T = np.log(1 + e2)
+    if uncompression:
+        e3T = 0 - e1T - e2T
+    else:
+        e3T = np.zeros(e1T.shape)
+
+    vm = np.sqrt(2) / 3 * np.sqrt((e1T - e2T) ** 2 + (e2T- e3T) ** 2 + (e3T - e1T) ** 2)
+    df = pd.DataFrame(vm)
+    df.to_csv('vm.csv')
+
     sigT = sig * (1 + e1)
 
     #e1P = e1 - sig / EMod
 
     plastic = (e1 - sig/EMod) > 0.002
-    #idx = 0
-    #for ii in range(0, e1.shape[0]):
-    #    if EMod * (e1[ii] - 0.002) - sig[ii] > 0:
-    #        idx = ii
-    #        break
+
+
 
     e1TP = (e1T - sigT / EMod)[plastic]
     e2TP = (e2T + poi * sigT / EMod)[plastic]
@@ -90,7 +96,7 @@ def hardenParamter(EMod = 207000, poi = 0.28, uncompression = True):
     ub = np.argmax(sigTP)
 
     e1UB = e1TP[0:ub]
-    e2UB = e2TP[0:ub]
+    #e2UB = e2TP[0:ub]
     sigUB = sigTP[0:ub]
     
     def SwiftLaw(x, A, e0, n):

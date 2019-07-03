@@ -1,7 +1,7 @@
 function [fitresult, gof] = FitMMC(x, y, z)
-%FitMMC 此处显示有关此函数的摘要
-% Von Mises屈服条件下的MMC模型 
-% Ref. Application of extended Mohr–Coulomb criterion to ductile fracture
+%FitMMC 锟剿达拷锟斤拷示锟叫关此猴拷锟斤拷锟斤拷摘要
+% Von Mises锟斤拷锟斤拷锟斤拷锟斤拷锟铰碉拷MMC模锟斤拷 
+% Ref. Application of extended Mohr锟紺Coulomb criterion to ductile fracture
 %global n;
 global A;
 [xData, yData, zData] = prepareSurfaceData(x, y, z );
