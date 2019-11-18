@@ -12,7 +12,7 @@ from scipy import interpolate
 # In[44]:
 
 
-def readTestInfo(fileMachine, fileDic, direction ='u_c',fileCamera ='Cam1ImageInfo.txt'):
+def readTestInfo(fileMachine, fileDic, direction ='u_c',fileCamera ='0_12mmpmin-1.csv'):
     """
     return
         time
@@ -29,19 +29,31 @@ def readTestInfo(fileMachine, fileDic, direction ='u_c',fileCamera ='Cam1ImageIn
             test = name
             break
     machine = pd.read_excel(xlsx, test)
-    machine = machine[2:].values
-    machineTime = machine[:, 2].astype(float)
-    force = machine[:,1].astype(float)
-    
+    machine = machine[1:].values
+    machineTime = machine[:, 1].astype(float)
+    force = machine[:,2].astype(float) * 1000.0
+    step = 1
+
+    force_count = force.shape[0]
+
+    if force_count > 20000:
+        step = int(np.floor(force_count /20000))
+    #print(step)
+    slc = slice(0, force_count, step)
+    machineTime = machineTime[slc]
+    force = force[slc]
+
+
     
     camera = pd.read_csv(fileCamera, header=None)
-    cameraTime = camera.loc[:, 1].values.reshape(-1,1).astype(float)
+    cameraTime = camera.loc[2:, 2].values.reshape(-1,1).astype(float)
     #print(cameraTime)
     dic = pd.read_csv(fileDic)
     result = dic[direction].values.reshape(-1,1).astype(float)
     count = result.shape[0]
-    
     cameraTime = cameraTime[0:count]
+    
+    cameraTime = cameraTime - cameraTime[0]
     #print (cameraTime)
     #timeResult = np.hstack([cameraTime, result]).reshape(-1, 2)
     #print(cameraTime.shape, result.shape)

@@ -6,35 +6,43 @@
 import sys
 import numpy as np
 from scipy.optimize import curve_fit
-from ReadFile import readTestInfo, readElastic
 from matplotlib import pyplot as plt
 import pandas as pd
-
+import os
 
 # In[5]:
 
 
-def strokeForce(fileName, direction):
-    up = readTestInfo(fileName, 'up.csv', direction)
-    down = readTestInfo(fileName, 'down.csv', direction)
-    stroke =  up[:,1]-down[:,1]
-    result = np.hstack([stroke.reshape(-1,1), up[:,-1].reshape(-1,1)])
+def strokeForce(machine, fileName, direction, guage):
+    #up = readTestInfo(fileName, 'up.csv', direction)
+    if machine == "WB":
+        from ReadFile_WB import readTestInfo, readElastic
+    else:
+        from ReadFile import readElastic, readTestInfo
+    E = readTestInfo(fileName, 'E.csv', 'E')
+    stroke =  E[:, 1] * guage
+    result = np.hstack([stroke.reshape(-1,1), E[:,-1].reshape(-1,1)])
     plt.plot(result[:,0], result[:,1])
     plt.show()
     df = pd.DataFrame(result, columns=['stroke', 'force'])
     df.to_excel('sf.xlsx','1')
 
 
-def ElasticParameter(fileName, width, thick, bound = None):
-    e1 = readTestInfo(fileName, 'strainE.csv', 'e1')
-    e2 = readTestInfo(fileName, 'strainE.csv', 'e2')
+def ElasticParameter(machine,fileName, width, thick, bound = None):
+    if machine == "WB":
+        from ReadFile_WB import readTestInfo, readElastic
+    else:
+        from ReadFile import readElastic, readTestInfo
+    e1 = readTestInfo(fileName, 'strain.csv', 'e1')
+    e2 = readTestInfo(fileName, 'strain.csv', 'e2')
+    
 
     force = e1[:, 2]
 
     sigEng = force / width / thick
 
-    eEng = e1[:,1]
-    e2Eng = e2[:, 1]
+    eEng = np.exp(e1[:,1]) - 1 
+    e2Eng = np.exp(e2[:, 1]) - 1
     plt.plot(eEng, sigEng)
     
 
@@ -51,48 +59,66 @@ def ElasticParameter(fileName, width, thick, bound = None):
 
         elastic = elasticU & elasticL
         eElastic = eEng[elastic]
-
+        e2Elastic = e2Eng[elastic]
         sigElastic = sigEng[elastic]
 
         popt, _ = curve_fit(linear_curve, eElastic, sigElastic)
         Emod = popt[0]
+        
+        popt, _ = curve_fit(linear_curve, eElastic, e2Elastic)
+        poison = - popt[0]
+
         plt.plot(eElastic, linear_curve(eElastic, *popt), 'r--')
 
-        df = pd.DataFrame(np.hstack([eEng.reshape(-1, 1), e2Eng.reshape(-1, 1), sigEng.reshape(-1, 1)]), columns=['e1', 'e2', 'sig'])
+        df = pd.DataFrame(np.hstack([eEng.reshape(-1, 1), sigEng.reshape(-1, 1)]), columns=['e1',  'sig'])
         df.to_excel('Eng.xlsx')
     
     plt.show()
-    return Emod
+    return Emod, poison
         
-def hardenParamter(EMod = 207000, poi = 0.28, uncompression = True):
-    #e1 = readTestInfo(fileName, 'strain.csv', 'e1')
-    #e2 = readTestInfo(fileName, 'strain.csv', 'e2')
+def hardenParamter(machine, fileName, EMod = 207000, poi = 0.28, uncompression = True):
+    if machine == "WB":
+        from ReadFile_WB import readTestInfo, readElastic
+    else:
+        from ReadFile import readElastic, readTestInfo 
+    e1T = readTestInfo(fileName, 'strain.csv', 'e1')[:,1]
+    e2T = readTestInfo(fileName, 'strain.csv', 'e2')[:,1]
     eng = readElastic('Eng.xlsx')
-    e1, e2, sig  = eng[:, 0], eng[:, 1], eng[:, 2]
+    sig  =  eng[:, 2]
+
+    print(sig)
+    nan_index = np.isnan(e1T)
+
+    n_index = np.argwhere([not x for x in nan_index])
+    e1T = e1T[n_index]
+    e2T = e2T[n_index]
     
-    e1T = np.log(1 + e1)
-    e2T = np.log(1 + e2)
     if uncompression:
         e3T = 0 - e1T - e2T
     else:
         e3T = np.zeros(e1T.shape)
 
     vm = np.sqrt(2) / 3 * np.sqrt((e1T - e2T) ** 2 + (e2T- e3T) ** 2 + (e3T - e1T) ** 2)
-    df = pd.DataFrame(vm)
-    df.to_csv('vm.csv')
-
-    sigT = sig * (1 + e1)
-
+    #df = pd.DataFrame(vm)
+    #df.to_csv('vm.csv')
+    
+    sigT = sig[n_index] * np.exp(e1T)
+    
     #e1P = e1 - sig / EMod
-
-    plastic = (e1 - sig/EMod) > 0.002
-
-
-
+    print(e1T.shape, sigT.shape)
+    plastic = (e1T - sig[n_index]/EMod) > 0.002
+   
+    print(plastic.shape)
     e1TP = (e1T - sigT / EMod)[plastic]
     e2TP = (e2T + poi * sigT / EMod)[plastic]
     sigTP = sigT[plastic]
+    
 
+    print(e1TP.shape, sigTP.shape)
+    
+    df = pd.DataFrame(np.hstack([e1TP.reshape(-1,1), sigTP.reshape(-1,1)]))
+    #df.to_csv('pc.csv')
+    
     ub = np.argmax(sigTP)
 
     e1UB = e1TP[0:ub]
@@ -109,8 +135,9 @@ def hardenParamter(EMod = 207000, poi = 0.28, uncompression = True):
 
     
     optSwift, _ = curve_fit(SwiftLaw, e1UB, sigUB, p0=[1000, 0.01, 0.2], bounds=(0, [100000, 0.5, 1]))
+    print(optSwift)
     optVoce, _ = curve_fit(VoceLaw, e1UB, sigUB, p0=[200, 300, 10])
-    optSwift
+    
 
     def MixedLaw(x, w):
         return w * SwiftLaw(x, *optSwift) + (1-w) * VoceLaw(x, *optVoce)
@@ -152,6 +179,7 @@ def hardenParamter(EMod = 207000, poi = 0.28, uncompression = True):
     df1.to_excel('Plastic.xlsx','1')
     df2 = pd.DataFrame(np.hstack([z2o.reshape(-1,1), sigz2o.reshape(-1,1)]), columns = ['ep','sig'])
     df2.to_csv('harden.csv', float_format='%.5f', header=False, index= False)
+    
 
     
 
@@ -160,14 +188,20 @@ def main(argv):
         print('world~!')
     else:
         print(argv)
-        fileName, width, thick, direction = argv[1:5]
-        lb, up = argv[5:7]
-        #Emod = ElasticParameter(fileName, float(width), float(thick), [float(lb), float(up)])
-        #print(Emod)
+        os.chdir("/Users/aaron/Downloads")
+        #files = os.listdir(os.getcwd())
+        import glob
+        f = glob.glob("*.xlsx")
+        #print(f)
 
-        hardenParamter(205000, 0.28)
+        machine, fileName, width, thick, direction = argv[1:6]
+        lb, up = argv[6:8]
+        #Emod, poison = ElasticParameter(machine, f[0], float(width), float(thick), [float(lb), float(up)])
+        #print(Emod, poison)
+
+        #hardenParamter(machine, f[0], 165000, 0.38)
         #strainStressU(fileName, float(width), float(thick))
-        #strokeForce(fileName, direction)
+        strokeForce(machine, f[0], direction, 50)
         
 if __name__=="__main__":
     main(sys.argv)
