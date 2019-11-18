@@ -17,10 +17,15 @@ def strokeForce(machine, fileName, direction, guage):
     #up = readTestInfo(fileName, 'up.csv', direction)
     if machine == "WB":
         from ReadFile_WB import readTestInfo, readElastic
+    elif machine == "Z100":
+        from ReadFile_Z100 import readTestInfo, readElastic
+    elif machine == "H050":
+        from  ReadFile_H050 import readTestInfo, readElastic
     else:
         from ReadFile import readElastic, readTestInfo
     E = readTestInfo(fileName, 'E.csv', 'E')
     stroke =  E[:, 1] * guage
+    print(stroke)
     result = np.hstack([stroke.reshape(-1,1), E[:,-1].reshape(-1,1)])
     plt.plot(result[:,0], result[:,1])
     plt.show()
@@ -31,12 +36,16 @@ def strokeForce(machine, fileName, direction, guage):
 def ElasticParameter(machine,fileName, width, thick, bound = None):
     if machine == "WB":
         from ReadFile_WB import readTestInfo, readElastic
+    elif machine == "Z100":
+        from ReadFile_Z100 import readTestInfo, readElastic
+    elif machine == "H050":
+        from  ReadFile_H050 import readTestInfo, readElastic
     else:
         from ReadFile import readElastic, readTestInfo
     e1 = readTestInfo(fileName, 'strain.csv', 'e1')
     e2 = readTestInfo(fileName, 'strain.csv', 'e2')
     
-
+    print(e1, e2)
     force = e1[:, 2]
 
     sigEng = force / width / thick
@@ -79,14 +88,23 @@ def ElasticParameter(machine,fileName, width, thick, bound = None):
 def hardenParamter(machine, fileName, EMod = 207000, poi = 0.28, uncompression = True):
     if machine == "WB":
         from ReadFile_WB import readTestInfo, readElastic
+    elif machine == "Z100":
+        from ReadFile_Z100 import readTestInfo, readElastic
+    elif machine == "H050":
+        from  ReadFile_H050 import readTestInfo, readElastic
     else:
         from ReadFile import readElastic, readTestInfo 
     e1T = readTestInfo(fileName, 'strain.csv', 'e1')[:,1]
     e2T = readTestInfo(fileName, 'strain.csv', 'e2')[:,1]
+    
+    
+    
     eng = readElastic('Eng.xlsx')
-    sig  =  eng[:, 2]
+    
+    #print(eng.shape)
+    sig  =  eng[:, 1]
 
-    print(sig)
+    
     nan_index = np.isnan(e1T)
 
     n_index = np.argwhere([not x for x in nan_index])
@@ -105,16 +123,16 @@ def hardenParamter(machine, fileName, EMod = 207000, poi = 0.28, uncompression =
     sigT = sig[n_index] * np.exp(e1T)
     
     #e1P = e1 - sig / EMod
-    print(e1T.shape, sigT.shape)
+    #print(e1T.shape, sigT.shape)
     plastic = (e1T - sig[n_index]/EMod) > 0.002
    
-    print(plastic.shape)
+    #print(plastic.shape)
     e1TP = (e1T - sigT / EMod)[plastic]
     e2TP = (e2T + poi * sigT / EMod)[plastic]
     sigTP = sigT[plastic]
     
 
-    print(e1TP.shape, sigTP.shape)
+    #print(e1TP.shape, sigTP.shape)
     
     df = pd.DataFrame(np.hstack([e1TP.reshape(-1,1), sigTP.reshape(-1,1)]))
     #df.to_csv('pc.csv')
@@ -188,7 +206,7 @@ def main(argv):
         print('world~!')
     else:
         print(argv)
-        os.chdir("/Users/aaron/Downloads")
+        os.chdir("H:\\ACAE\\bolt\\specimens\\Experments\\ut1\\UT-1-2-")
         #files = os.listdir(os.getcwd())
         import glob
         f = glob.glob("*.xlsx")
@@ -199,7 +217,7 @@ def main(argv):
         #Emod, poison = ElasticParameter(machine, f[0], float(width), float(thick), [float(lb), float(up)])
         #print(Emod, poison)
 
-        #hardenParamter(machine, f[0], 165000, 0.38)
+        hardenParamter(machine, f[0], 165000, 0.38)
         #strainStressU(fileName, float(width), float(thick))
         strokeForce(machine, f[0], direction, 50)
         
