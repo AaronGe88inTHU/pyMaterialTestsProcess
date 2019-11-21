@@ -13,7 +13,7 @@ import os
 # In[5]:
 
 
-def strokeForce(machine, fileName, direction, guage):
+def strokeForce(machine, fileName, cameraName, direction, guage):
     #up = readTestInfo(fileName, 'up.csv', direction)
     if machine == "WB":
         from ReadFile_WB import readTestInfo, readElastic
@@ -21,11 +21,13 @@ def strokeForce(machine, fileName, direction, guage):
         from ReadFile_Z100 import readTestInfo, readElastic
     elif machine == "H050":
         from  ReadFile_H050 import readTestInfo, readElastic
+    elif machine == "H050_T":
+        from ReadFile_H050_T import readElastic, readTestInfo
     else:
         from ReadFile import readElastic, readTestInfo
-    E = readTestInfo(fileName, 'E.csv', 'E')
+    E = readTestInfo(fileName, 'E.csv', 'E', cameraName)
     stroke =  E[:, 1] * guage
-    print(stroke)
+    #print(stroke)
     result = np.hstack([stroke.reshape(-1,1), E[:,-1].reshape(-1,1)])
     plt.plot(result[:,0], result[:,1])
     plt.show()
@@ -33,17 +35,19 @@ def strokeForce(machine, fileName, direction, guage):
     df.to_excel('sf.xlsx','1')
 
 
-def ElasticParameter(machine,fileName, width, thick, bound = None):
+def ElasticParameter(machine,fileName, cameraName, width, thick, bound = None):
     if machine == "WB":
         from ReadFile_WB import readTestInfo, readElastic
     elif machine == "Z100":
         from ReadFile_Z100 import readTestInfo, readElastic
     elif machine == "H050":
         from  ReadFile_H050 import readTestInfo, readElastic
+    elif machine == "H050_T":
+        from ReadFile_H050_T import readElastic, readTestInfo
     else:
         from ReadFile import readElastic, readTestInfo
-    e1 = readTestInfo(fileName, 'strain.csv', 'e1')
-    e2 = readTestInfo(fileName, 'strain.csv', 'e2')
+    e1 = readTestInfo(fileName, 'strain.csv', 'e1', cameraName)
+    e2 = readTestInfo(fileName, 'strain.csv', 'e2', cameraName)
     
     print(e1, e2)
     force = e1[:, 2]
@@ -85,31 +89,34 @@ def ElasticParameter(machine,fileName, width, thick, bound = None):
     plt.show()
     return Emod, poison
         
-def hardenParamter(machine, fileName, EMod = 207000, poi = 0.28, uncompression = True):
+def hardenParamter(machine, fileName, cameraName, EMod = 207000, poi = 0.28, uncompression = True):
     if machine == "WB":
         from ReadFile_WB import readTestInfo, readElastic
     elif machine == "Z100":
         from ReadFile_Z100 import readTestInfo, readElastic
     elif machine == "H050":
         from  ReadFile_H050 import readTestInfo, readElastic
+    elif machine == "H050_T":
+        from ReadFile_H050_T import readElastic, readTestInfo
     else:
-        from ReadFile import readElastic, readTestInfo 
-    e1T = readTestInfo(fileName, 'strain.csv', 'e1')[:,1]
-    e2T = readTestInfo(fileName, 'strain.csv', 'e2')[:,1]
+        from ReadFile import readElastic, readTestInfo
+    e1T = readTestInfo(fileName, 'strain.csv', 'e1', cameraName)[:,1]
+    e2T = readTestInfo(fileName, 'strain.csv', 'e2', cameraName)[:,1]
     
-    
+    #print(e1T)
     
     eng = readElastic('Eng.xlsx')
     
     #print(eng.shape)
-    sig  =  eng[:, 1]
-
+    sig  =  eng[:, -1]
+    
+    #print(sig)
     
     nan_index = np.isnan(e1T)
 
-    n_index = np.argwhere([not x for x in nan_index])
-    e1T = e1T[n_index]
-    e2T = e2T[n_index]
+    #n_index = np.argwhere([not x for x in nan_index])
+    #e1T = e1T[n_index]
+    #e2T = e2T[n_index]
     
     if uncompression:
         e3T = 0 - e1T - e2T
@@ -120,11 +127,11 @@ def hardenParamter(machine, fileName, EMod = 207000, poi = 0.28, uncompression =
     #df = pd.DataFrame(vm)
     #df.to_csv('vm.csv')
     
-    sigT = sig[n_index] * np.exp(e1T)
+    sigT = sig * np.exp(e1T)
     
     #e1P = e1 - sig / EMod
     #print(e1T.shape, sigT.shape)
-    plastic = (e1T - sig[n_index]/EMod) > 0.002
+    plastic = (e1T - sig/EMod) > 0.002
    
     #print(plastic.shape)
     e1TP = (e1T - sigT / EMod)[plastic]
@@ -162,7 +169,7 @@ def hardenParamter(machine, fileName, EMod = 207000, poi = 0.28, uncompression =
 
     optMixed, _ = curve_fit(MixedLaw, e1UB,sigUB, p0=0.5, bounds=(0,1))
 
-    print(optSwift, optVoce, optMixed)
+    #print(optSwift, optVoce, optMixed)
     #sig = trueStrain(e1[:, 2], e1[:, 1], width, thick)
     #result = np.hstack([e1[:,1].reshape(-1,1), e2[:,1].reshape(-1,1), sig.reshape(-1,1)])
     plt.plot(e1TP, sigTP, label = 'True stress - strain curve')
@@ -206,46 +213,27 @@ def main(argv):
         print('world~!')
     else:
         print(argv)
-        os.chdir("H:\\ACAE\\bolt\\specimens\\Experments\\ut1\\UT-1-2-")
+        os.chdir("//Volumes//GE-KINGSTON//CH//CH-1")
         #files = os.listdir(os.getcwd())
         import glob
         f = glob.glob("*.xlsx")
         #print(f)
 
-        machine, fileName, width, thick, direction = argv[1:6]
+        machine, fileName, cameraName, width, thick, direction = argv[0:6]
         lb, up = argv[6:8]
-        #Emod, poison = ElasticParameter(machine, f[0], float(width), float(thick), [float(lb), float(up)])
+        #Emod, poison = ElasticParameter(machine, f[0], cameraName, float(width), float(thick), [float(lb), float(up)])
         #print(Emod, poison)
 
-        hardenParamter(machine, f[0], 165000, 0.38)
+        #hardenParamter(machine, fileName, cameraName, 165000, 0.38)
         #strainStressU(fileName, float(width), float(thick))
-        strokeForce(machine, f[0], direction, 50)
+        strokeForce(machine, fileName, cameraName, direction, 10)
         
 if __name__=="__main__":
-    main(sys.argv)
+    main(["WB", "CH-1.xlsx", "0.06mmpmin-1.csv", "5", "2", "E", "50", "300"])
+    
     
 
 
-
-# In[21]:
-
-
-
-
-
-# In[16]:
-
-
-
-
-
-# In[20]:
-
-
-
-
-
-# In[23]:
 
 
 
