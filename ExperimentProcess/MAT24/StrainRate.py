@@ -14,10 +14,10 @@ def fun_rate(c, rates, curve0):
     for r in rates:
         curve = (1 + (bracket(np.log(r/c[1])) * c[0])) * curve0
         curves.append(curve)
-    
+
     return np.array(curves).reshape(-1, n)
     
-        
+#def func_CS(c, rates, curve0)
         
 def err_rate(c, rates, curves):
     n = len(rates)
@@ -28,7 +28,7 @@ def err_rate(c, rates, curves):
     return fun.flatten()
 
 def main(argv):
-    fileName = argv[1]
+    fileName = '5182.xlsx'
     xlsx = pd.ExcelFile(fileName)
     names = xlsx.sheet_names
     curves = []
@@ -36,7 +36,7 @@ def main(argv):
     for name in names:
         df = pd.read_excel(xlsx, name)
         rates.append(float(name))
-        
+        print(name)
         curve = df.values[:,1]
         curves.append(curve)
     c0 = (0.1, 0.004)
