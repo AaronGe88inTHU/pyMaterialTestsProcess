@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from scipy import interpolate
 from Constants import strain_for_interlopating
 
@@ -45,3 +46,90 @@ def eng2True(curve, E = 207000):
 
     return true_curve[:idx,:]
 
+def read_eng_file_to_plastic_curve(xlsx_file):
+    eng_curve_dict = {}
+    xlsx = pd.ExcelFile(xlsx_file)
+    names = xlsx.sheet_names
+    for name in names:
+        df = pd.read_excel(xlsx, name)
+        #df.replace('--',  0)
+        eng_curve_dict[name] = df.values
+
+    plastic_curve_dict = {}
+    # if len(eng_curve_dict) == 0:
+    #     return plastic_curve_dict
+    #      #return None
+    # else:
+    if not len(eng_curve_dict) == 0:      
+        for k, v in eng_curve_dict.items():
+            plastic_curve_dict[k] = eng2True(v)
+
+    return plastic_curve_dict
+
+def read_plastic_file(xlsx_file):
+    plastic_curve_dict = {}
+    xlsx = pd.ExcelFile(xlsx_file)
+    names = xlsx.sheet_names
+    
+    temp_dict = {}
+    v_idx = []
+    for name in names:
+        df = pd.read_excel(xlsx, name)
+        v = df.values
+        temp_dict[name] = v
+        v_idx.append([v[0,0], v[-1, 0]])
+    
+    v_idx = np.array(v_idx)
+    vmin = np.max(v_idx[:, 0])
+    vmax = np.min(v_idx[:, 1])
+
+    idx = np.where(strain_for_interlopating > vmin)
+    strain = strain_for_interlopating[idx]
+    
+    idx = np.where(strain < vmax)
+    strain = strain[idx] 
+    
+    for k, v in temp_dict.items():
+        funcInter = interpolate.interp1d(v[:, 0], v[:, 1], bounds_error=False, fill_value=0.0)
+        stress_plastic_interpolated = funcInter(strain)
+        idx = np.where(stress_plastic_interpolated > 0)
+        v2 = np.hstack([strain[idx].reshape(-1,1), stress_plastic_interpolated[idx].reshape(-1,1)])
+        plastic_curve_dict[k] = v2
+
+    return plastic_curve_dict
+
+def read_plastic_file_for_double_scale(xlsx_file):
+    plastic_curve_dict = {}
+    xlsx = pd.ExcelFile(xlsx_file)
+    names = xlsx.sheet_names
+    
+    temp_dict = {}
+    scale_dict = {}
+    v_idx = []
+    for name in names:
+        df = pd.read_excel(xlsx, name)
+        v = df.values
+        #v[:, 0] /= v[-1, 0]
+        #v[:, 1] /= v[-1, 1]
+        temp_dict[name] = v
+        v_idx.append([v[0,0], v[-1, 0]])
+        scale_dict[name] = np.array([v[-1, 0], v[-1, 1]])
+    
+    v_idx = np.array(v_idx)
+    vmin = np.max(v_idx[:, 0])
+    vmax = np.min(v_idx[:, 1])
+
+    idx = np.where(strain_for_interlopating > vmin)
+    strain = strain_for_interlopating[idx]
+    
+    idx = np.where(strain < vmax)
+    strain = strain[idx] 
+    
+    for k, v in temp_dict.items():
+        funcInter = interpolate.interp1d(v[:, 0], v[:, 1], bounds_error=False, fill_value=0.0)
+        stress_plastic_interpolated = funcInter(strain)
+        idx = np.where(stress_plastic_interpolated > 0)
+        v2 = np.hstack([strain[idx].reshape(-1,1), stress_plastic_interpolated[idx].reshape(-1,1)])
+        plastic_curve_dict[k] = v2
+
+    return plastic_curve_dict, scale_dict
