@@ -64,7 +64,7 @@ def J_C_Model(x0, plastic_stress_curves):
     # else:
     k = [ k for k in plastic_stress_curves.keys()][0]
     plastic_strain = plastic_stress_curves[k][:, 0]
-    rate1 = np.array(A + B * np.power(plastic_strain, n))
+    #rate1 = np.array(A + B * np.power(plastic_strain, n))
     for r, s in plastic_stress_curves.items():
         #try:
         sr = rate1 * (1 + c * np.log(float(r)))
@@ -75,6 +75,8 @@ def J_C_Model(x0, plastic_stress_curves):
         #    pass
     #print(err)
     return np.array(err)
+
+    
 
 def C_S_Model(x0, plastic_stress_curves):
     A, B, n, d1, d2 = x0 
@@ -158,10 +160,10 @@ class StrainRateSenstivity:
         new_curves = func(self.res[0], self.plastic_curve_dic)
         return new_curves
 
-curves = PrepareEngineeringCurve.read_plastic_file('GC420.xlsx')
+curves = PrepareEngineeringCurve.read_plastic_file('5182.xlsx')
 GC420 = StrainRateSenstivity(curves)
 #curves = m980.to_true_curves()
-res = GC420.fit_model(C_S_Model, [1000, 200, 0.1, 1.0001, 1])
+res = GC420.fit_model(C_S_Model, [1000, 200, 0.1, 0.01, 5])
 new_curves = GC420.to_curves(C_S)
 print(res)
 from matplotlib import pyplot as plt

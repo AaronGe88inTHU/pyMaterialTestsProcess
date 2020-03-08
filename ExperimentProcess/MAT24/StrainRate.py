@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit, least_squares
 import matplotlib.pyplot as plt
+from Constants import five_to_twenty_per
 
 def bracket(x):
     return x if x >= 0 else 0
@@ -36,10 +37,13 @@ def main(argv):
     for name in names:
         df = pd.read_excel(xlsx, name)
         rates.append(float(name))
-        print(name)
+        print
         curve = df.values[:,1]
         curves.append(curve)
-    c0 = (0.1, 0.004)
+
+    for curve in curves:
+        new_curves = interpolate.interp1d(strain_plastic, stress_plastic, bounds_error=False, fill_value=0.0)
+    c0 = (0.1, 1000)
     #print(rates)
     res = least_squares(err_rate, c0, args=(rates, curves))
     print(res)
