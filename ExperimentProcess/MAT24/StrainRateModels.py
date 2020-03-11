@@ -82,12 +82,12 @@ def C_S_Model(x0, plastic_stress_curves):
     A, B, n, d1, d2 = x0 
     #print(plastic_stress_curves.keys())
     err = []
-    # if '1' in plastic_stress_curves.keys():
-    #     stress = plastic_stress_curves['1']
+    # if '1.0' in plastic_stress_curves.keys():
+    #     stress = plastic_stress_curves['1.0']
     #     rate1 = stress[:, 1]
     #     for r, s in plastic_stress_curves.items():
-    #         if not r == "1":
-    #             sr = rate1 * (1 + c * np.log(float(r)))
+    #         if not r == "1.0":
+    #             sr = rate1 * (1 + np.power(float(r) * d1, d2))
     #             assert len(s) == len(sr)
     #             err.extend(s[:, 1] - sr)
     # else:
@@ -96,13 +96,14 @@ def C_S_Model(x0, plastic_stress_curves):
     rate1 = np.array(A + B * np.power(plastic_strain, n))
     for r, s in plastic_stress_curves.items():
         #try:
+        #print(r)
         sr = rate1 * (1 + np.power(float(r) * d1, d2))
         assert len(s) == len(sr)
         err.extend(s[:, 1] - sr)
-    
+        
         #except Exception as identifier:
         #    pass
-    #print(err)
+        #print(err)
     return np.array(err)
 
 # def Double_C_S_Model(x0, plastic_stress_curves):
@@ -163,7 +164,7 @@ class StrainRateSenstivity:
 curves = PrepareEngineeringCurve.read_plastic_file('5182.xlsx')
 GC420 = StrainRateSenstivity(curves)
 #curves = m980.to_true_curves()
-res = GC420.fit_model(C_S_Model, [1000, 200, 0.1, 0.01, 5])
+res = GC420.fit_model(C_S_Model, [100, 200, 0.1, 1000, 1])
 new_curves = GC420.to_curves(C_S)
 print(res)
 from matplotlib import pyplot as plt
@@ -171,7 +172,7 @@ from matplotlib import pyplot as plt
 for k, y in curves.items():
     plt.plot(y[:, 0], y[:, 1], 'y-', label = k, color='r')
 for k, y in new_curves.items():
-    plt.plot(y[:, 0], y[:, 1], 'y-', label = k, color='b') 
+    plt.plot(y[:, 0], y[:, 1], 'y-', label = k) 
 #plt.xlabel('True Strain')
 #plt.ylabel('True Stress (MPa)')
 plt.legend()

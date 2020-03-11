@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from scipy import interpolate
-from Constants import strain_for_interlopating
+from Constants import strain_for_interlopating, five_to_twenty_per
 
 def eng2True(curve, E = 207000):
     idx = np.argmax(curve[:, 1])
