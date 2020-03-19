@@ -19,7 +19,7 @@ def rbdoutReader(fileName):
                 k = res1[-1]
                 #print(k)
             if "displacements:" in res1:
-                print('d')
+                #print('d')
                 if timed:
                     d_x[k].append(float(res1[1]))
                     d_y[k].append(float(res1[2]))
@@ -28,5 +28,5 @@ def rbdoutReader(fileName):
 
     return times, d_x, d_y, d_z
 
-res = rbdoutReader('JellyRoll_Z.rbdout')
-print(res[0]['time'], res[1]['2'])
+# res = rbdoutReader('JellyRoll_Z.rbdout')
+# print(res[0]['time'], res[1]['2'])

@@ -31,5 +31,5 @@ def rwforcReader(fileName):
             
 
 
-res = rwforcReader('JellyRoll_Z.rwforc')
-print(res[0]["1"])
+# res = rwforcReader('JellyRoll_Z.rwforc')
+# print(res[0]["1"])
