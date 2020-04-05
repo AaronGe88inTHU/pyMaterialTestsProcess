@@ -9,12 +9,14 @@ import numpy as np
 import pandas as pd
 import logging
 import os
+import sys
 from scipy import interpolate, optimize
 from scipy import integrate
-import matplotlib.pyplot as plt
-from matplotlib import ticker, cm
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
+from time import gmtime, strftime
+#import matplotlib.pyplot as plt
+#from matplotlib import ticker, cm
+#from mpl_toolkits.mplot3d import Axes3D
+#from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 
 # In[3]:
@@ -165,21 +167,21 @@ def readSimpleResult(file):
 # In[13]:
 
 
-tests = readSimpleResult("simple2.xlsx")
+# tests = readSimpleResult("simple2.xlsx")
 #print(tests)
-fig = plt.figure()
-xx, yy, zz = tests[:, 0], tests[:, 1], tests[:, 2]
-ax = fig.gca(projection='3d')
-pl = ax.scatter(xx, yy, zz)#, cmap=cm.coolwarm,linewidth=0, antialiased=False)
+# fig = plt.figure()
+# xx, yy, zz = tests[:, 0], tests[:, 1], tests[:, 2]
+# ax = fig.gca(projection='3d')
+# pl = ax.scatter(xx, yy, zz)#, cmap=cm.coolwarm,linewidth=0, antialiased=False)
 
-ax.legend()#
-ax.xaxis.set_major_locator(LinearLocator(5))
-ax.yaxis.set_major_locator(LinearLocator(5))
-ax.set_xlabel('Triaxiality')
-ax.set_ylabel('Lode Parameter')
-ax.set_zlabel('Effective plastic strain')
+# ax.legend()#
+# ax.xaxis.set_major_locator(LinearLocator(5))
+# ax.yaxis.set_major_locator(LinearLocator(5))
+# ax.set_xlabel('Triaxiality')
+# ax.set_ylabel('Lode Parameter')
+# ax.set_zlabel('Effective plastic strain')
 
-plt.show()
+# plt.show()
 
 
 # In[14]:
@@ -206,9 +208,9 @@ def simplifiedMMC(eta, thetaBar, param):
     #print(epsilonPlasticFailure.shape)
     #print(np.any(np.isnan(epsilonPlasticFailure)))
     except(RuntimeWarning):
-        print('run time warning',A, n, c1, c2)
+        
         epsilonPlasticFailure = np.zeros(comp.shape)
-    
+       
     return epsilonPlasticFailure
 
 
@@ -245,12 +247,18 @@ def errSimple(param, x, y):
 def fitDamageSimple(tests):
     targets = tests[:, 2]
     #result = testResults(tests,(996.68, 0.026, 0.1, 500))
-    res = optimize.least_squares(errSimple, (0.1, 1000), bounds=([0,0],[1000,10000]), args=(tests, targets))
+    try:
+        res = optimize.least_squares(errSimple, (0.1, 1000), bounds=([0,0],[1000,10000]), args=(tests, targets))
+        with open("logging.txt",'a+') as f:
+            f.write("{0:.4f}, {1:.4f}\n".format(res.x[0], res.x[1]))
+            tt = strftime("%a, %d %b %Y %H:%M:%S +0800", gmtime())
+            f.write(tt + "\n")
+    except Exception as e:
+        with open("logging.txt",'a+') as f:
+            f.write(str(e))
+            tt = strftime("%a, %d %b %Y %H:%M:%S +0800", gmtime())
+            f.write(tt + "\n")
     return res
-
-
-# In[22]:
-
 
 def MMCSurface(*param):
     eta = np.arange(-1., 1.1, 0.1)
@@ -269,21 +277,14 @@ def MMCSurface(*param):
 
 # In[23]:
 
-"""
-Input A, n
-"""
-A = 2184.36
-n = 0.16347
-resSimple= fitDamageSimple(tests)
+# """
+# Input A, n
+# """
+# A = 2184.36
+# n = 0.16347
+# resSimple= fitDamageSimple(tests)
 
-
-# In[24]:
-
-
-resSimple.x
-
-
-# In[27]:
+# resSimple.x
 
 
 def showFigure(faiureSurface, tests):
@@ -319,8 +320,8 @@ def showFigure(faiureSurface, tests):
 # In[36]:
 
 
-failureSurface = MMCSurface(A, n, resSimple.x[0], resSimple.x[1])
-showFigure(failureSurface, tests)
+# failureSurface = MMCSurface(A, n, resSimple.x[0], resSimple.x[1])
+# showFigure(failureSurface, tests)
 
 
 # In[37]:
@@ -383,12 +384,39 @@ def writeTable(failueSurface):
                     '{:>10.2e}'.format(strain[ii,jj])+'\n')
         f.write('*END')
 
-# In[40]:
+if __name__ == "__main__":
+
+    #Input A, n
+    #A = 2184.36
+    #n = 0.16347
+    #print(sys.argv)
+    [A, n]= sys.argv[1:3]
+    A = float(A)
+    n = float(n)
+    
+    tests = readSimpleResult("simple.xlsx")
+
+    # fig = plt.figure()
+    # xx, yy, zz = tests[:, 0], tests[:, 1], tests[:, 2]
+    # ax = fig.gca(projection='3d')
+    # pl = ax.scatter(xx, yy, zz)#, cmap=cm.coolwarm,linewidth=0, antialiased=False)
+
+    # ax.legend()#
+    # ax.xaxis.set_major_locator(LinearLocator(5))
+    # ax.yaxis.set_major_locator(LinearLocator(5))
+    # ax.set_xlabel('Triaxiality')
+    # ax.set_ylabel('Lode Parameter')
+    # ax.set_zlabel('Effective plastic strain')
+
+    # plt.show()
 
 
-writeTable(failureSurface)
-#etaX, thetaY, strain = failureSurface
+    resSimple= fitDamageSimple(tests)
 
-#import scipy.io as sio
-#sio.savemat('sfc.mat', {'sfc': np.array(failureSurface)})
-
+     
+    failureSurface = MMCSurface(A, n, resSimple.x[0], resSimple.x[1])
+    # showFigure(failureSurface, tests)
+    writeTable(failureSurface)
+    
+        
+        
