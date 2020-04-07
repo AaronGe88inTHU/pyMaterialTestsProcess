@@ -1,30 +1,47 @@
-from nodoutReader import nodoutReader
-from secforReader import secforReader
+from ASCIIReader import *
 import numpy as np
-from matplotlib import pyplot as plt
-import pandas as pd
 
 
-def disp_force(node_ids, sec_id, res_file=0):
-    node_info = nodoutReader('nodout')
-    assert len(node_ids) == 2
-    assert len(sec_id) == 1
-    exp = np.array([0,0]).reshape(-1, 2)
-    if not res_file == 0:
-        exp = pd.read_csv(res_file).value
+
+
+
+def disp_force(res_file="", direction=0):
+    node_info = nodoutReader(res_file+'.nodout')
+    assert len(node_info.keys())
+    
     #print(node_info.keys())
-    dx_1 = np.array(node_info[293]).reshape(-1, 12)
-    dx_2 = np.array(node_info[4282]).reshape(-1,12)
-    disp = np.abs(dx_1[:, 1]- dx_2[:, 1])
-    #print(disp)
+    d_1 = np.array(node_info[list(node_info.keys())[0]])
+    d_2 = np.array(node_info[list(node_info.keys())[1]])
+    disp = np.abs((d_1 - d_2)).reshape(-1, 12)[:, direction]
+    #print(d_1 - d_2)
+    #print(disp.shape[0])
 
-    node_info = secforReader('secforc')
+    sec_info = secforReader(res_file+'.secforc')
     #print(node_info.keys())
+    assert len(sec_info) == 1
+    sec_force = np.array(sec_info[list(sec_info.keys())[0]]).reshape(-1,5)[:, direction+1]
+    sec_force = np.abs(sec_force)
+    #print(sec_force.shape[0])
+    shape = np.min([disp.shape[0], sec_force.shape[0]])
+    return np.hstack([disp.reshape(-1,1)[0:shape], sec_force.reshape(-1,1)[0:shape]])
 
-    sec_force = np.abs(np.array(node_info[1]).reshape(-1,5)[:, 2])
-    #print(sec_x)
-    plt.plot(exp[:, 0], exp[:, 1])
-    plt.scatter(disp, sec_force)
-    plt.show()
+def disp_force_rgdwall(res_file="", direction=3):
+    rw_info = rwforcReader(res_file+'.rwforc')[1]
+    assert len(rw_info.keys()) == 1
+    
+    rwforc = np.abs(rw_info[list(rw_info.keys())[0]])
 
-disp_force([293, 4282], [1])
+    rgd_info = rbdoutReader(res_file+'.rbdout')[3]
+
+    #print(rgd_info)
+    #print(idx)
+    idx = np.sort(np.array(list(rgd_info.keys()),dtype=int))[-1]
+    #print(idx)
+    disp = np.abs(rgd_info[str(idx)])
+
+    shape = np.min([disp.shape[0], rwforc.shape[0]])
+    return np.hstack([disp.reshape(-1,1)[0:shape], rwforc.reshape(-1,1)[0:shape]])
+    
+#df = disp_force_rgdwall('15')
+#disp_force([293, 4282], [1])
+#print(df)

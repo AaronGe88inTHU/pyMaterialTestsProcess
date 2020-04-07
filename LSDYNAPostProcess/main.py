@@ -1,53 +1,39 @@
-import sys
-#from matplotlib import pyplot as plt
-import numpy as np
-from collections import defaultdict
-import pandas as pd
-import copy
-from eloutReader import eloutReader, effectStrain
-from kReader import setLoader
+import glob
+import os
+from disp_force import *
+from MMCTable import *
+from matplotlib import pyplot as plt
 
+csv_files = glob.glob("*.csv")
+csv_files.sort()
+csv_f = [c.split('.')[0] for c in csv_files]
 
+k_files = [glob.glob(c+"*.k") for c in csv_f]
+k_files = np.sort(np.array(k_files).flatten())
 
-def gauge(elementSet, elout):
-    elout2 = copy.deepcopy(elout)
-    gaugeHistory = defaultdict(list)
-    for idSet, elSet in elementSet.items():
-        found = []
-        for idEle, strainHistory in elout2.items():
-            if idEle in elSet[0]:
-                #eleHistory = [effectStrain(ll) for ll in strainHistory]
-                eleHistory = [ll[0] for ll in strainHistory]
-                gaugeHistory[idSet].append(eleHistory)
-                found.append(idEle)
-        [elout2.pop(ll) for ll in found]
-    return gaugeHistory
+#print(k_file)
 
-def main(argv):
-    kName = argv[1]
-    ele = setLoader(kName)
-    elout = eloutReader('elout')
-    #lst = elout[1424]
-    #print(len(lst[0]))
-    #history = [effectStrain(ll) for ll in lst] 
-    #plt.plot(history)
-    #plt.show()
-    history = gauge(ele, elout)
+A = 3043.18303
+n = 0.12954
+C, D = -1, 1800
+E, F, G = 1, -1, 1
+failureSurface = MMCSurface(A, n, np.exp(C), D)
+writeTable(failureSurface)
+eta, ercit = QuadCurve(E, F, G)
+writeErcit(eta, ercit)
 
-    columns = []
+commands = ["lsdyna.exe i="+k+" NCPU=8" for k in k_files]
 
-    gaugeData = []
-    for k, v in history.items():
-        #print(k, v)
-        aver = np.average(np.array(v), axis=0)
-        #print(aver.shape)
-        #plt.plot(aver)
-        columns.append(str(k)[1:])
-        gaugeData.append(aver)
-    #plt.show()
-    gaugeData = np.array(gaugeData).T
-    df = pd.DataFrame(gaugeData, columns = columns)
-    df.to_excel('gauge.xlsx','1')
+for cmd in commands:
+    print(cmd)
+    os.system(cmd)
 
-if __name__ == "__main__":
-    main(sys.argv)
+for out, exp in zip(csv_f, csv_files):
+    print(out)
+    exp_curve = pd.read_csv(exp).values
+    plt.scatter(exp_curve[:,0], exp_curve[:,1])
+    sim_curve = disp_force(out, 0)
+    plt.plot(sim_curve[:,0], sim_curve[:,1])
+
+plt.show()
+
