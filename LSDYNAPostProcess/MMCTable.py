@@ -135,4 +135,72 @@ def writeErcit(theta, ercit):
                     '{:>10}'.format(' ') +
                     '{:>10.2e}'.format(eps)+'\n')
         f.write('*END')
-    
+
+def writeParameter(param):
+    eps_s1, eps_s2, eps_t, eps_n, eps_p = param
+    with open('gissimo.cur', 'w+') as f:
+        f.write('*KEYWORD\n')
+        f.write('*PARAMETER\n')
+        f.write('$#\n')
+        f.write('{:<10}'.format('reps_s1'))
+        f.write('{:<10.3f}'.format(eps_s1)+'\n')
+        f.write('{:<10}'.format('reps_s2'))
+        f.write('{:<10.3f}'.format(eps_s2)+'\n')
+        f.write('{:<10}'.format('reps_t'))
+        f.write('{:<10.3f}'.format(eps_t)+'\n')
+        f.write('{:<10}'.format('reps_n'))
+        f.write('{:<10.3f}'.format(eps_n)+'\n')
+        f.write('{:<10}'.format('reps_p'))
+        f.write('{:<10.3f}'.format(eps_p)+'\n')
+        
+
+        f.write('*DEFINE_CURVE'+'\n')
+        f.write('$#Triaxiality vs. Failure Plastic Strain'+'\n')
+        f.write('$'+'{:>9}'.format('LCID')+
+                '{:>10}'.format('SIDR') + 
+                '{:>10}'.format('SCLA') + 
+                '{:>10}'.format('SCLO') + 
+                '{:>10}'.format('OFFA') +
+                '{:>10}'.format('OFFO') +
+                '{:>10}'.format('DATTYP') +
+                '{:>10}'.format(' ')+'\n')
+
+        f.write('{:>10d}'.format(5000)+
+                '{:>10d}'.format(0) + 
+                '{:>10.2f}'.format(1.0) + 
+                '{:>10.2f}'.format(1.0) + 
+                '{:>10.2f}'.format(0.0) +
+                '{:>10.2f}'.format(0.0) +
+                '{:>10d}'.format(0) +
+                '{:>10d}'.format(0) + '\n')
+
+        f.write('$'+'{:>9}'.format(' ')+
+                '{:>10}'.format('A1')+
+                '{:>10}'.format(' ')+
+                '{:>10}'.format('O1')+'\n')
+
+        f.write('{:>10}'.format('')+
+                '{:>10}'.format(-0.2)+
+                '{:>10}'.format(' ')+
+                '{:>10.3f}'.format(2) +'\n')
+
+        f.write('{:>10}'.format('')+
+                '{:>10.5f}'.format(-0.1)+
+                '{:<10}'.format('&eps_s1') +'\n')
+        f.write('{:>10}'.format('')+
+                '{:>10.5f}'.format(0.1)+
+                '{:<10}'.format('&eps_s2') +'\n')
+        f.write('{:>10}'.format('')+
+                '{:>10.5f}'.format(0.33333)+
+                '{:<10}'.format('&eps_t') +'\n')
+        f.write('{:>10}'.format('')+
+                '{:>10.5f}'.format(0.577)+
+                '{:<10}'.format('&eps_n') +'\n')
+        f.write('{:>10}'.format('')+
+                '{:>10.5f}'.format(0.6666)+
+                '{:<10}'.format('&eps_p') +'\n')
+                    
+        f.write('*END')
+
+writeParameter([0,0,0,0,0])
+
