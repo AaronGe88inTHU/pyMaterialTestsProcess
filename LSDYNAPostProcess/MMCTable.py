@@ -3,6 +3,7 @@ import sys
 import numpy as np
 from matplotlib import pyplot as plt
 import pandas as pd
+from scipy.interpolate import splev, splprep, interp1d
 # import warnings
 # warnings.filterwarnings('error')
 # C = float('<<c>>')
@@ -54,12 +55,59 @@ def MMCSurface(*param):
     '''
     return etaX, thetaY, epsilon
 
-def QuadCurve(*param):
+def QuadCurve(param):
     A, h, k  = param
     theta = np.arange(-1, 1.1, 0.1)
     ercit = A * np.power(theta - h, 2) + k
     
     return theta, ercit
+
+def BSplineCurve(param):
+    eps_s1, eps_s2, eps_t, eps_n, eps_p = param
+    #eps_s0 = 2.0
+    #points = np.hstack([np.array([-0.2, -0.1, 0.1, 0.333, 0.577, 0.6666]).reshape(-1,1), np.array([2, eps_s1, eps_s2, eps_t, eps_n, eps_p]).reshape(-1,1)])
+    x = np.array([-0.2, -0.1, 0.1, 0.333, 0.577, 0.6666])
+    y = np.array([2, eps_s1, eps_s2, eps_t, eps_n, eps_p])
+    print(x.shape, y.shape)
+    tck, u = splprep([x, y], s=0)
+    print(u)
+    u_new = np.arange(0, 1.01, 0.01)
+    x1, y1 = splev(u_new,tck)
+    plt.plot(x1, y1, 'r-', x, y, 'bo')
+    plt.plot(x1, y1, 'r-', x, y, 'bo')
+    plt.legend(["Parametric spline", "Orignal pointers"],loc='best')
+    plt.show()
+    return np.hstack([x1.reshape(-1,1),y1.reshape(-1,1)])
+    
+def CubicCurve(param):
+    eps_s1, eps_s2, eps_t, eps_n, eps_p = param
+    x = np.array([-0.2, -0.1, 0.1, 0.333, 0.577, 0.6666])
+    y = np.array([2, eps_s1, eps_s2, eps_t, eps_n, eps_p])
+    #print(x.shape, y.shape)
+    #tck, u = splprep([x, y], s=0)
+    f = interp1d(x, y, kind = 'cubic')
+    #print(u)
+    x1 = np.linspace(-0.2, 0.6666, 30)
+    y1 = f(x1)
+    # plt.plot(x1, y1, 'r-', x, y, 'bo')
+    # plt.legend(["Parametric spline", "Orignal pointers"],loc='best')
+    # plt.show()
+    return np.hstack([x1.reshape(-1,1),y1.reshape(-1,1)])
+
+def LinearCurve(param):
+    eps_s1, eps_s2, eps_t, eps_n, eps_p = param
+    x = np.array([-0.2, -0.1, 0.1, 0.333, 0.577, 0.6666])
+    y = np.array([2, eps_s1, eps_s2, eps_t, eps_n, eps_p])
+    #print(x.shape, y.shape)
+    #tck, u = splprep([x, y], s=0)
+    f = interp1d(x, y)
+    #print(u)
+    x1 = np.linspace(-0.2, 0.6666, 30)
+    y1 = f(x1)
+    # plt.plot(x1, y1, 'r-', x, y, 'bo')
+    # plt.legend(["Parametric spline", "Orignal pointers"],loc='best')
+    # plt.show()
+    return np.hstack([x1.reshape(-1,1),y1.reshape(-1,1)])
     
 def writeTable(failueSurface):
     etaX, thetaY, strain = failueSurface
@@ -199,8 +247,43 @@ def writeParameter(param):
         f.write('{:>10}'.format('')+
                 '{:>10.5f}'.format(0.6666)+
                 '{:<10}'.format('&eps_p') +'\n')
-                    
+        
         f.write('*END')
 
-writeParameter([0,0,0,0,0])
+def writeGissimoCurve(param):
+    #print(param)
+    curve = LinearCurve(param)
+    with open('gissimo.cur', 'w+') as f:
+        f.write('*KEYWORD\n')
+        f.write('*DEFINE_CURVE'+'\n')
+        f.write('$#Triaxiality vs. Failure Plastic Strain'+'\n')
+        f.write('$'+'{:>9}'.format('LCID')+
+                '{:>10}'.format('SIDR') + 
+                '{:>10}'.format('SCLA') + 
+                '{:>10}'.format('SCLO') + 
+                '{:>10}'.format('OFFA') +
+                '{:>10}'.format('OFFO') +
+                '{:>10}'.format('DATTYP') +
+                '{:>10}'.format(' ')+'\n')
 
+        f.write('{:>10d}'.format(5000)+
+                '{:>10d}'.format(0) + 
+                '{:>10.2f}'.format(1.0) + 
+                '{:>10.2f}'.format(1.0) + 
+                '{:>10.2f}'.format(0.0) +
+                '{:>10.2f}'.format(0.0) +
+                '{:>10d}'.format(0) +
+                '{:>10d}'.format(0) + '\n')
+
+        f.write('$'+'{:>9}'.format(' ')+
+                '{:>10}'.format('A1')+
+                '{:>10}'.format(' ')+
+                '{:>10}'.format('O1')+'\n')
+        for (x, y) in curve:
+            f.write('{:>10}'.format(' ')+
+                    '{:>10.3f}'.format(x) + 
+                    '{:>10}'.format(' ') +
+                    '{:>10.3f}'.format(y)+'\n') 
+        f.write('*END\n') 
+
+##writeGissimoCurve([1,0.2,0.4,0.2,0.6])
