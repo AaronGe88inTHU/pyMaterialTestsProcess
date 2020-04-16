@@ -49,7 +49,7 @@ def ElasticParameter(machine,fileName, cameraName, width, thick, bound = None):
     e1 = readTestInfo(fileName, 'strain.csv', 'e1', cameraName)
     e2 = readTestInfo(fileName, 'strain.csv', 'e2', cameraName)
     
-    print(e1, e2)
+    #print(e1, e2)
     force = e1[:, 2]
 
     sigEng = force / width / thick
@@ -65,12 +65,15 @@ def ElasticParameter(machine,fileName, cameraName, width, thick, bound = None):
     Emod = 0
 
     if not bound == None:
+        sigEng
         lb, ub = bound
 
         elasticL = sigEng > lb
         elasticU = sigEng < ub
+        elasticP = eEng < 0.01
 
-        elastic = elasticU & elasticL
+        elastic = elasticU & elasticL & elasticP
+        
         eElastic = eEng[elastic]
         e2Elastic = e2Eng[elastic]
         sigElastic = sigEng[elastic]
@@ -213,23 +216,25 @@ def main(argv):
         print('world~!')
     else:
         print(argv)
-        os.chdir("//Volumes//GE-KINGSTON//CH//CH-1")
+        machine, cwd, cameraName, width, thick, direction = argv[0:6]
+        os.chdir(cwd)
         #files = os.listdir(os.getcwd())
         import glob
-        f = glob.glob("*.xlsx")
+        fileName = glob.glob("*.xlsx")[0]
         #print(f)
 
-        machine, fileName, cameraName, width, thick, direction = argv[0:6]
-        lb, up = argv[6:8]
-        #Emod, poison = ElasticParameter(machine, f[0], cameraName, float(width), float(thick), [float(lb), float(up)])
+       
+        #lb, up = argv[6:8]
+        gauge = float(argv[8])
+        #Emod, poison = ElasticParameter(machine, fileName, cameraName, float(width), float(thick), [float(lb), float(up)])
         #print(Emod, poison)
 
-        #hardenParamter(machine, fileName, cameraName, 165000, 0.38)
+        #hardenParamter(machine, fileName, cameraName, Emod, 0.30)
         #strainStressU(fileName, float(width), float(thick))
-        strokeForce(machine, fileName, cameraName, direction, 10)
+        strokeForce(machine, fileName, cameraName, direction, gauge)
         
 if __name__=="__main__":
-    main(["WB", "CH-1.xlsx", "0.06mmpmin-1.csv", "5", "2", "E", "50", "300"])
+    main(["z020", "H:\\04\\as-recived\\LJ\\1", "Cam1ImageInfo.txt", "12.4", "0.97", "E", "50", "300","25"])
     
     
 

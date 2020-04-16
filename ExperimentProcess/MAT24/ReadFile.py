@@ -24,7 +24,6 @@ def readTestInfo(fileMachine, fileDic, direction ='u_c',fileCamera ='Cam1ImageIn
     test = ''
     for name in names:
         df = pd.read_excel(xlsx, name)
-        #print(df.shape)
         if df.shape[0] > 20:
             test = name
             break
@@ -36,27 +35,25 @@ def readTestInfo(fileMachine, fileDic, direction ='u_c',fileCamera ='Cam1ImageIn
     
     camera = pd.read_csv(fileCamera, header=None)
     cameraTime = camera.loc[:, 1].values.reshape(-1,1).astype(float)
-    #print(cameraTime)
+
+
     dic = pd.read_csv(fileDic)
     result = dic[direction].values.reshape(-1,1).astype(float)
-    count = result.shape[0]
-    
+    count = np.min([np.max(result.shape[0]), np.max(cameraTime.shape[0])])    
     cameraTime = cameraTime[0:count]
-    #print (cameraTime)
-    #timeResult = np.hstack([cameraTime, result]).reshape(-1, 2)
-    #print(cameraTime.shape, result.shape)
-    funcEx = interpolate.interp1d(cameraTime[:,0], result[:,0], bounds_error=False)
+    result = result[0:count]
+
+    print(cameraTime.shape, result.shape)
+    funcCamera = interpolate.interp1d(cameraTime.flatten(), result.flatten(), bounds_error=False)
+    funcMachine = interpolate.interp1d(machineTime.flatten(), force.flatten(), bounds_error=False) 
     
-    #machineTime = machineTime.reshape(-1,1)
-    #machineTime = machineTime[:,0]
-    #resultEx = np.array([funcEx(t) for t in machineTime])
-    resultEx = funcEx(machineTime.reshape(-1, 1))
-    #print(machineTime.shape, resultEx.shape, force.shape)
-    #nan = np.isnan(resultEx)
-    #resultEx = resultEx[~nan]
-    #machineTime = machineTime[~nan]
-    #force = force[~nan]
-    return np.hstack([machineTime.reshape(-1,1), resultEx, force.reshape(-1,1)]).reshape(-1, 3)
+ 
+    the_time = np.min([np.max(cameraTime), np.max(machineTime)])
+    time_range = np.linspace(0, the_time, 2000)
+    the_camera = funcCamera(time_range)
+    the_force = funcMachine(time_range)
+
+    return np.hstack([time_range.reshape(-1,1), the_camera.reshape(-1,1), the_force.reshape(-1,1)])
 
 
 def readElastic(fileName):
