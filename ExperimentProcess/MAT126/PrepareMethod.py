@@ -18,7 +18,11 @@ from ASCIIReader import rwforcReader, rbdoutReader
 
 def read_test_results(fileName):
     """
-    ToDO
+    Read test result from XLSX files
+    INPUT:
+        fileName
+    OUTPUT:
+        numpy array of test result curve
     """
     tests_dict = {}
     excel = pd.ExcelFile(fileName)
@@ -31,22 +35,17 @@ def read_test_results(fileName):
     return tests_dict
     
 
-
-# In[3]:
-
-
-
-
-
-# In[4]:
-
-
-def make_curve(A, n, s0):
+def make_curve(A, n, s0, t):
     """
-    TODO
+    Create the target harden curves
+    INPUT:
+        A, n, s0, t: Curve parameters, seeing manual for details
+    
+    OUTPUT:
+        numpy array of harden curve
     """
     lt_zero = np.arange(-0.2, 0, 0.02)
-    lt_zero_stress = -80 * lt_zero + s0
+    lt_zero_stress = -t * lt_zero + s0
     gt_zero = np.arange(0, 2, 0.01)
     gt_zero_stress = A * np.power(gt_zero, n) + s0
     x = np.hstack([lt_zero, gt_zero])
@@ -59,7 +58,13 @@ def make_curve(A, n, s0):
 
 def write_curve(fileName, curve, lcid):
     """
-    TODO
+    Create load curve file in *.k 
+    INPUT:
+        fileName
+        curve: numpy file of load curve
+        lcid: ID of load curve
+    OUTPUT:
+        None
     """
     with open(fileName, 'w+') as f:
         f.write("*KEYWORD\n")
@@ -78,7 +83,10 @@ def write_curve(fileName, curve, lcid):
 
 def prepare_files(folder_name, files):
     """
-    TODO
+    Copy essential files into target folder
+    INPUT:
+        folder_name
+        files
     """
     if not os.path.exists(folder_name):
         os.mkdir(folder_name)
@@ -92,8 +100,14 @@ def prepare_files(folder_name, files):
 
 
 def execute_calculation(exe_path, main_file):
+    """
+    execute ls dyna calculation
+    INPUT:
+        exe_path: lsdyna.exe file path
+        main_file: mian *.dyn file
+    """
     os.system(exe_path + " i=" + main_file + " NCPU=8 Memory=2000m")
-    os.chdir
+    os.chdir(owd)
 
 
 # In[8]:
@@ -101,7 +115,12 @@ def execute_calculation(exe_path, main_file):
 
 def get_result(rgb_id, rw_id):
     """
-    TODO
+    Get simulation result
+    INPUT:
+        rgb_id: ID of Punch
+        rw_id: ID of rigid wall
+    OUTPUT:
+        simulation result
     """
     rwf = rwforcReader('rwforc')
     #print(res[0]["1"])# 
@@ -115,74 +134,6 @@ def get_result(rgb_id, rw_id):
 
 
 # In[9]:
-
-
-def func_simulation(param):
-    """
-    TODO
-    """
-    global cur_num
-    with open ("param.txt", "a+") as f:
-        f.write("{0:d},{1:.4f},{2:.4f}, {3:.4f}\n".format(cur_num, param[0], param[1], param[2]))
-    curve = make_curve(param[0], param[1], param[2])
-    prepare_files(str(cur_num), ['JellyRoll.blk', 'JellyRoll.mat', 'cylinder.k', 'X-D50.dyn', '2200.k','2300.k'])
-    write_curve('2100.k', curve, 2100)
-    #execute_calculation('D:\LSDYNA\program\ls-dyna_smp_s_R11_0_winx64_ifort131.exe', 'XSphD25.dyn')
-    simu = get_result(3, 3)
-    #print(simu)
-    os.chdir(owd)
-    cur_num += 1
-    return simu
-
-def err_func(param, args):
-    #print(param)
-    #print(args)
-    test = np.array(args)
-    #print(test)
-    simu = func_simulation(param)
-    funcSim = interpolate.interp1d(simu[:,0], simu[:,1], bounds_error=False)
-    print(simu)
-    funcTest = interpolate.interp1d(test[:,0], test[:,1], bounds_error=False)
-    if np.max(test[:,0]) > np.max(simu[:,0]):
-        top = np.max(simu[:,0])
-    else:
-        top = np.max(test[:,0])
-    #print(top)
-    if np.min(test[:,0]) > np.min(simu[:,0]):
-        lower = np.min(test[:,0])
-    else:
-        lower = np.min(simu[:,0])
-    
-    inter_sim = funcSim(np.arange(lower,top, 0.001))
-    inter_test = funcTest(np.arange(lower,top, 0.001))
-    #print(inter_sim)
-    return inter_sim - inter_test
-
-
-def do_inverse(test):
-    """
-    TODO
-    """
-    #print(test)
-    #try:
-    res = optimize.least_squares(err_func, (60, 1.67, 0.2), args=([test['df2'],]),)# bounds=(np.inf, np.inf, np.inf))
-    print(res.x)
-    #except ValueError as e:
-    #    print(res.x)
-    #finally:
-        #os.chdir(owd)
-    return res
-
-
-# In[ ]:
-
-test = read_test_results('X.xlsx')
-cur_num = 1
-owd = os.getcwd()
-do_inverse(test)
-
-
-# In[ ]:
 
 
 

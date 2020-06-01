@@ -108,3 +108,4 @@ venv.bak/
 *.csv
 *.xls
 *.xlsx
+.DS_Store
