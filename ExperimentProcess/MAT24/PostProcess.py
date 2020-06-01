@@ -131,11 +131,11 @@ def hardenParamter(machine, fileName, cameraName, EMod = 207000, poi = 0.28, unc
     #df.to_csv('vm.csv')
     
     sigT = sig * np.exp(e1T)
-    
+    #print(sigT)
     #e1P = e1 - sig / EMod
     #print(e1T.shape, sigT.shape)
-    plastic = (e1T - sig/EMod) > 0.002
-   
+    plastic = (e1T - sig/EMod) > 0.000
+    print(plastic)
     #print(plastic.shape)
     e1TP = (e1T - sigT / EMod)[plastic]
     e2TP = (e2T + poi * sigT / EMod)[plastic]
@@ -229,12 +229,12 @@ def main(argv):
         #Emod, poison = ElasticParameter(machine, fileName, cameraName, float(width), float(thick), [float(lb), float(up)])
         #print(Emod, poison)
 
-        #hardenParamter(machine, fileName, cameraName, Emod, 0.30)
+        #hardenParamter(machine, fileName, cameraName, 63343, 0.33)
         #strainStressU(fileName, float(width), float(thick))
         strokeForce(machine, fileName, cameraName, direction, gauge)
         
 if __name__=="__main__":
-    main(["z020", "H:\\04\\as-recived\\LJ\\1", "Cam1ImageInfo.txt", "12.4", "0.97", "E", "50", "300","25"])
+    main(["z020", "H:\\GAC\\battery\\Exp\\Alum\\LJ\\2", "Cam1ImageInfo.txt", "12.6", "0.88", "E", "25", "100","20"])
     
     
 

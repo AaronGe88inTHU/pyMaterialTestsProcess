@@ -16,4 +16,4 @@ def ROI(from_path, to_path, up, left, h, w, format = "bmp"):
         cv2.imwrite(os.path.join(to_path, im), roi)
         print('done!')
 
-ROI('C:\\Users\\windows\\Desktop\\3\\Cam1', 'G:\\Project6\\ZhongLv\\\BM\\1mm_min\\3\\Cam1', 200, 0, 600,1628)
+ROI('I:\\dianchike\\uni\\3\\Cam1', 'H:\\GAC\\battery\\Exp\\Alum\\uni\\3\\Cam1', 450, 0, 400,1628)
