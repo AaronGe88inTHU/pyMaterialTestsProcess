@@ -20,7 +20,7 @@ def do_inverse(func, test, init_param):
     print(test)
     #try:
     s, c, n, t = init_param[:4]
-    res = optimize.least_squares(func, (s, c, n, t), args=([test['sheet1'],]), bounds=([0, 0,1,0], [100, 10000, 2, 1000]),diff_step=[0.05, 0.05, 0.05, 0.05])
+    res = optimize.minimize(func, (s, c, n, t), args=([test['sheet1'],]), method='L-BFGS-B', bounds=([0, 100],[0, 5000], [0.1, 5],[5, 1000]), options={"eps":0.01})
     print(res.x)
     #except ValueError as e:
     #    print(res.x)
@@ -30,4 +30,4 @@ def do_inverse(func, test, init_param):
 
 test = read_test_results('Z.xlsx')
 
-do_inverse(err_func_step_1_Z, test, [2, 1200, 1.5, 20])
+do_inverse(err_func_step_1_Z, test, [0.1, 500, 1.5, 200])

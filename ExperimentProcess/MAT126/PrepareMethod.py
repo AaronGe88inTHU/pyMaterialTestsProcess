@@ -10,7 +10,6 @@ from collections import namedtuple
 import os
 import shutil
 from ASCIIReader import rwforcReader, rbdoutReader
-from GlobalVariables import owd
 
 
 owd = os.getcwd()

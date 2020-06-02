@@ -2,13 +2,12 @@
 # coding: utf-8
 import numpy as np
 import os
-from PrepareMethod import make_curve, prepare_files, write_curve, execute_calculation, get_result
+from PrepareMethod import make_curve, prepare_files, write_curve, execute_calculation, get_result, owd
 from scipy import interpolate
-from GlobalVariables import owd
 
 
 cur_num = 1
-exe_path = "D:\\LSDYNA7\\program\\ls-dyna_smp_s_R700_winx64_ifort101.exe"
+exe_path = "lsdyna.exe"
 
 
 def func_simulation_step_1_Z(param):
@@ -48,11 +47,11 @@ def err_func_step_1_Z(param, args):
     OUTPUT:
         err
     """
-    test = np.array(args)
+    test = np.array(args[0])
     #print(test)
     simu = func_simulation_step_1_Z(param)
     funcSim = interpolate.interp1d(simu[:,0], simu[:,1], bounds_error=False)
-    print(simu)
+    #print(simu)
     funcTest = interpolate.interp1d(test[:,0], test[:,1], bounds_error=False)
     if np.max(test[:,0]) > np.max(simu[:,0]):
         top = np.max(simu[:,0])
@@ -64,10 +63,12 @@ def err_func_step_1_Z(param, args):
     else:
         lower = np.min(simu[:,0])
     
-    inter_sim = funcSim(np.arange(lower,top, 0.001))
-    inter_test = funcTest(np.arange(lower,top, 0.001))
+    print(lower, top)
+    inter_sim = funcSim(np.arange(lower,top, 0.1))
+    inter_test = funcTest(np.arange(lower,top, 0.1))
     #print(inter_sim)
-    return inter_sim - inter_test
+    f = inter_sim - inter_test
+    return np.sum(np.power(f, 2))
 
 
 
