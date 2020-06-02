@@ -2,9 +2,8 @@
 # coding: utf-8
 import numpy as np
 import os
-from PrepareMethod import make_curve, prepare_files, write_curve, execute_calculation, get_result
+from PrepareMethod import make_curve, prepare_files, write_curve, execute_calculation, get_result, owd
 from scipy import interpolate
-from GlobalVariables import owd
 
 
 cur_num = 1
