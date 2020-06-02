@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
 
 
 import numpy as np
-from scipy import optimize, interpolate
+
 import pandas as pd
 from collections import namedtuple
 import os
@@ -13,8 +12,7 @@ import shutil
 from ASCIIReader import rwforcReader, rbdoutReader
 
 
-# In[2]:
-
+owd = os.getcwd()
 
 def read_test_results(fileName):
     """
@@ -35,7 +33,7 @@ def read_test_results(fileName):
     return tests_dict
     
 
-def make_curve(A, n, s0, t):
+def make_curve(s0, A, n, t):
     """
     Create the target harden curves
     INPUT:
@@ -53,7 +51,6 @@ def make_curve(A, n, s0, t):
     return np.hstack([x.reshape(-1,1), y.reshape(-1,1)])
 
 
-# In[5]:
 
 
 def write_curve(fileName, curve, lcid):
@@ -78,7 +75,6 @@ def write_curve(fileName, curve, lcid):
         f.write("*END")
 
 
-# In[6]:
 
 
 def prepare_files(folder_name, files):
@@ -96,7 +92,6 @@ def prepare_files(folder_name, files):
     
 
 
-# In[7]:
 
 
 def execute_calculation(exe_path, main_file):
@@ -106,14 +101,14 @@ def execute_calculation(exe_path, main_file):
         exe_path: lsdyna.exe file path
         main_file: mian *.dyn file
     """
+    print(main_file)
     os.system(exe_path + " i=" + main_file + " NCPU=8 Memory=2000m")
-    os.chdir(owd)
+    #os.chdir(owd)
 
 
-# In[8]:
 
 
-def get_result(rgb_id, rw_id):
+def get_result(rgb_id, rw_id, direction = 3):
     """
     Get simulation result
     INPUT:
@@ -122,18 +117,19 @@ def get_result(rgb_id, rw_id):
     OUTPUT:
         simulation result
     """
+    #print()
     rwf = rwforcReader('rwforc')
-    #print(res[0]["1"])# 
+    #print(rwf)
     rbd = rbdoutReader('rbdout')
+    #print('rwf\n',rwf)
     # print(res[0]['time'], res[1]['2'])
-    d_x = np.abs(np.array(rbd[1][str(rgb_id)]).reshape(-1, 1))
+    d_x = np.abs(np.array(rbd[3][str(rgb_id)]).reshape(-1, 1))
     forc = np.array(rwf[1][str(rw_id)]).reshape(-1, 1)
     #print(d_x.shape, forc.shape)
     assert d_x.shape[0] == forc.shape[0]
     return np.hstack([d_x, forc])
 
 
-# In[9]:
 
 
 
