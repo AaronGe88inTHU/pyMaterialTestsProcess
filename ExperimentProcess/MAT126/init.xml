@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<INITPARAM>    
+    <X>
+        <PARAM>
+            <S>2</S>
+            <C>20</C>
+            <N>1</N>
+            <T>200</T>
+        </PARAM>
+    </X>
+    <Y>
+        <PARAM>
+            <S>2</S>
+            <C>20</C>
+            <N>1</N>
+            <T>200</T>
+        </PARAM>
+    </Y>
+    <Z>
+        <PARAM>
+            <S>0.1</S>
+            <C>500</C>
+            <N>1</N>
+            <T>200</T>
+        </PARAM>
+    </Z>
+</INITPARAM>
