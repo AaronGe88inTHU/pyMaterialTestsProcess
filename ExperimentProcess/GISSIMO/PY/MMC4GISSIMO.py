@@ -19,13 +19,13 @@ bb = 0.1
 Wierzbicki and XUe (2005)
 relation of triax and lodep
 """
-lode_p = lambda triax: -27 / 2 * triax * (np.power(triax, 2) - 1/3)
+xi = lambda triax: -27 / 2 * triax * (np.power(triax, 2) - 1/3)
 
 """
 Y. Bai, T. Wierzbicki (2008)
 relation of lodep and lodeb
 """
-lode_b = lambda lodep: 1 - 2/np.pi * np.arccos(lodep)
+theta_bar = lambda xi: 1 - 2/np.pi * np.arccos(xi)
 
 def eps_i(triax):
     """
@@ -36,16 +36,16 @@ def eps_i(triax):
     output = aa * np.power(triax - 0.33, 2) + bb
     return output
 
-def eps_f(triax, lodeb):
+def eps_f(triax, theta_bar):
     """
     Y. Bai, T. Wierzbicki (2008)
     Simplified MMC model
     """ 
     global c1, c2, A, n
     
-    term_1 = np.sqrt((1 + np.power(c1, 2)/ 3)) * np.cos(lodeb * np.pi / 6)
+    term_1 = np.sqrt((1 + np.power(c1, 2)/ 3)) * np.cos(theta_bar * np.pi / 6)
     print(term_1)
-    term_2 = c1 * (triax + np.sin(lodeb * np.pi / 6)/3)
+    term_2 = c1 * (triax + np.sin(theta_bar * np.pi / 6)/3)
     print(term_2)
     eps = np.power(A/c2*(term_1+term_2), -1/n)
     #print(eps)
@@ -55,7 +55,7 @@ def eps_f(triax, lodeb):
 
 def writeSDGCurve(triax, eps):
     #print(param)
-    with open('SDG.cur', 'w+') as f:
+    with open('5000.cur', 'w+') as f:
         f.write('*KEYWORD\n')
         f.write('*DEFINE_CURVE'+'\n')
         f.write('$#Triaxiality vs. Failure Plastic Strain'+'\n')
@@ -90,7 +90,7 @@ def writeSDGCurve(triax, eps):
 
 def writeECRITCurve(triax, eps):
     #print(param)
-    with open('ECRIT.cur', 'a+') as f:
+    with open('3000.cur', 'a+') as f:
         f.write('*KEYWORD\n')
         f.write('*DEFINE_CURVE'+'\n')
         f.write('$#Triaxiality vs. Failure Plastic Strain'+'\n')
@@ -126,5 +126,5 @@ def writeECRITCurve(triax, eps):
 
 triax = np.arange(-0.66, 0.68, 0.03)
 
-writeSDGCurve(triax, eps_f(triax, lode_b(lode_p(triax))))
+writeSDGCurve(triax, eps_f(triax, theta_bar(xi(triax))))
 writeECRITCurve(triax, eps_i(triax))
