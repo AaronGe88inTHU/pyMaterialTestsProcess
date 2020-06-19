@@ -109,3 +109,4 @@ venv.bak/
 *.xls
 *.xlsx
 .DS_Store
+*.cur

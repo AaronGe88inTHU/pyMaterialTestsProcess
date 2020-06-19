@@ -23,13 +23,13 @@ bb = float('<<bb>>')
 Wierzbicki and XUe (2005)
 relation of triax and lodep
 """
-lode_p = lambda triax: -27 / 2 * triax * (np.power(triax, 2) - 1/3)
+xi = lambda triax: -27 / 2 * triax * (np.power(triax, 2) - 1/3)
 
 """
 Y. Bai, T. Wierzbicki (2008)
 relation of lodep and lodeb
 """
-lode_b = lambda lodep: 1 - 2/np.pi * np.arccos(lodep)
+theta_bar = lambda xi: 1 - 2/np.pi * np.arccos(xi)
 
 def eps_i(triax):
     """
@@ -40,7 +40,7 @@ def eps_i(triax):
     output = aa * np.power(triax - 0.33, 2) + bb
     return output
 
-def eps_f(triax, lodeb):
+def eps_f(triax, theta_bar):
     """
     Y. Bai, T. Wierzbicki (2008)
     Simplified MMC model
