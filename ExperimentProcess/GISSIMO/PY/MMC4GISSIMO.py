@@ -1,19 +1,23 @@
+#!/usr/bin/env python
 # coding: utf-8
-
-#c1 = float('<<c1>>')
-#c2 = float('<<c2>>')
-#A = float("<<A>>")
-#n = float("<<n>>")
-
+import sys
 import numpy as np
+c1 = float('<<c1>>')
+c2 = float('<<c2>>')
+A = float('<<A>>')
+n = float('<<n>>')
 
-c1 = 0.12
-c2 = 720
-A = 1276
-n = 0.2655
+aa = float('<<aa>>')
+bb = float('<<bb>>')
 
-aa = 1
-bb = 0.1
+
+# c1 = 0.12
+# c2 = 720
+# A = 1276
+# n = 0.2655
+
+# aa = 1
+# bb = 0.1
 
 """
 Wierzbicki and XUe (2005)
@@ -44,9 +48,9 @@ def eps_f(triax, lodeb):
     global c1, c2, A, n
     
     term_1 = np.sqrt((1 + np.power(c1, 2)/ 3)) * np.cos(lodeb * np.pi / 6)
-    print(term_1)
+    #print(term_1)
     term_2 = c1 * (triax + np.sin(lodeb * np.pi / 6)/3)
-    print(term_2)
+    #print(term_2)
     eps = np.power(A/c2*(term_1+term_2), -1/n)
     #print(eps)
     return eps
@@ -55,7 +59,7 @@ def eps_f(triax, lodeb):
 
 def writeSDGCurve(triax, eps):
     #print(param)
-    with open('SDG.cur', 'w+') as f:
+    with open('5000.cur', 'w+') as f:
         f.write('*KEYWORD\n')
         f.write('*DEFINE_CURVE'+'\n')
         f.write('$#Triaxiality vs. Failure Plastic Strain'+'\n')
@@ -90,7 +94,7 @@ def writeSDGCurve(triax, eps):
 
 def writeECRITCurve(triax, eps):
     #print(param)
-    with open('ECRIT.cur', 'a+') as f:
+    with open('3000.cur', 'w+') as f:
         f.write('*KEYWORD\n')
         f.write('*DEFINE_CURVE'+'\n')
         f.write('$#Triaxiality vs. Failure Plastic Strain'+'\n')
@@ -128,3 +132,4 @@ triax = np.arange(-0.66, 0.68, 0.03)
 
 writeSDGCurve(triax, eps_f(triax, lode_b(lode_p(triax))))
 writeECRITCurve(triax, eps_i(triax))
+print("N o r m a l")
