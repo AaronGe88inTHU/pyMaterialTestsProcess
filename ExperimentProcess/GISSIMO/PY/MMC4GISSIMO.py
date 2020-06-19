@@ -2,13 +2,13 @@
 # coding: utf-8
 import sys
 import numpy as np
-c1 = float('<<c1>>')
-c2 = float('<<c2>>')
-A = float('<<A>>')
-n = float('<<n>>')
+c1 = 0.362#float('<<c1>>')
+c2 = 3000#float('<<c2>>')
+A = 2111.4#float('<<A>>')
+n = 0.2 #float('<<n>>')
 
-aa = float('<<aa>>')
-bb = float('<<bb>>')
+aa = 1#float('<<aa>>')
+bb = 1#float('<<bb>>')
 
 
 # c1 = 0.12
@@ -27,7 +27,7 @@ xi = lambda triax: -27 / 2 * triax * (np.power(triax, 2) - 1/3)
 
 """
 Y. Bai, T. Wierzbicki (2008)
-relation of lodep and lodeb
+relation of \\bar{thera} and \\xi
 """
 theta_bar = lambda xi: 1 - 2/np.pi * np.arccos(xi)
 
@@ -47,9 +47,9 @@ def eps_f(triax, theta_bar):
     """ 
     global c1, c2, A, n
     
-    term_1 = np.sqrt((1 + np.power(c1, 2)/ 3)) * np.cos(lodeb * np.pi / 6)
+    term_1 = np.sqrt((1 + np.power(c1, 2)/ 3)) * np.cos(theta_bar * np.pi / 6)
     #print(term_1)
-    term_2 = c1 * (triax + np.sin(lodeb * np.pi / 6)/3)
+    term_2 = c1 * (triax + np.sin(theta_bar * np.pi / 6)/3)
     #print(term_2)
     eps = np.power(A/c2*(term_1+term_2), -1/n)
     #print(eps)
@@ -130,6 +130,6 @@ def writeECRITCurve(triax, eps):
 
 triax = np.arange(-0.66, 0.68, 0.03)
 
-writeSDGCurve(triax, eps_f(triax, lode_b(lode_p(triax))))
+writeSDGCurve(triax, eps_f(triax, theta_bar(xi(triax))))
 writeECRITCurve(triax, eps_i(triax))
 print("N o r m a l")

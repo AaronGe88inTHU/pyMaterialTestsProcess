@@ -10,8 +10,7 @@ import pandas as pd
 import logging
 import os
 import sys
-from scipy import interpolate, optimize
-from scipy import integrate
+from scipy import interpolate, optimize, integrate
 from time import gmtime, strftime
 #import matplotlib.pyplot as plt
 #from matplotlib import ticker, cm
